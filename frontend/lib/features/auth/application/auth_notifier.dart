@@ -1,7 +1,8 @@
-import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/network/api_error.dart';
 import '../../../core/storage/secure_storage_service.dart';
+import '../../user/data/user_api.dart';
 import '../data/auth_api.dart';
 import '../data/models/signup_request.dart';
 import '../domain/authenticated_user.dart';
@@ -29,7 +30,7 @@ class AuthNotifier extends Notifier<AuthState> {
         user: AuthenticatedUser.fromAuthResponse(response),
       );
     } catch (error) {
-      state = state.copyWith(status: AuthStatus.error, errorMessage: _messageFor(error));
+      state = state.copyWith(status: AuthStatus.error, errorMessage: messageFor(error));
     }
   }
 
@@ -46,7 +47,7 @@ class AuthNotifier extends Notifier<AuthState> {
         otpExpiresInSeconds: challenge.expiresInSeconds,
       );
     } catch (error) {
-      state = state.copyWith(status: AuthStatus.error, errorMessage: _messageFor(error));
+      state = state.copyWith(status: AuthStatus.error, errorMessage: messageFor(error));
     }
   }
 
@@ -75,7 +76,7 @@ class AuthNotifier extends Notifier<AuthState> {
         user: AuthenticatedUser.fromAuthResponse(response),
       );
     } catch (error) {
-      state = state.copyWith(status: AuthStatus.error, errorMessage: _messageFor(error));
+      state = state.copyWith(status: AuthStatus.error, errorMessage: messageFor(error));
     }
   }
 
@@ -91,16 +92,19 @@ class AuthNotifier extends Notifier<AuthState> {
     state = const AuthState();
   }
 
-  // The backend's GlobalExceptionHandler wraps every business-rule failure
-  // (bad password, wrong OTP, etc.) as {"error": "<message>", ...} with a 400.
-  String _messageFor(Object error) {
-    if (error is DioException) {
-      final data = error.response?.data;
-      if (data is Map && data['error'] is String) {
-        return data['error'] as String;
-      }
+  /// Re-syncs `role`/`membershipStatus` from `GET /api/user/me` without a
+  /// fresh login — needed after a payment, since the Razorpay webhook that
+  /// flips a user to PREMIUM runs server-to-server and the JWT/AuthResponse
+  /// the client already holds has no way to reflect that on its own.
+  Future<void> refreshProfile() async {
+    if (state.user == null) return;
+    try {
+      final profile = await ref.read(userApiProvider).me();
+      state = state.copyWith(user: AuthenticatedUser.fromProfile(profile));
+    } catch (_) {
+      // Best-effort: leave the existing user state alone if this fails:
+      // the caller (PaymentNotifier) decides how to react, e.g. by retrying.
     }
-    return 'Something went wrong. Please try again.';
   }
 }
 

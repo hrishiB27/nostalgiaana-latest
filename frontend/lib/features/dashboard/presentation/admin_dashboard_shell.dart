@@ -2,21 +2,52 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/config/theme_config.dart';
+import '../../admin/presentation/manage_audios_screen.dart';
+import '../../admin/presentation/manage_shows_screen.dart';
+import '../../admin/presentation/manage_users_screen.dart';
 import '../../auth/application/auth_notifier.dart';
 import '../../auth/presentation/role_selection_screen.dart';
 
-/// Placeholder management shell an ADMIN lands on after OTP verification.
-/// Panels are static for now — wiring "Manage Shows"/"Manage Audios" to
-/// `/api/admin/shows` and "Manage Users" to `/api/admin/users` is a
-/// follow-up once the actual management screens are designed.
+/// Management shell an ADMIN lands on after OTP verification. "Manage
+/// Shows"/"Manage Audios" still route to placeholder screens — wiring them
+/// to `/api/admin/shows`/`/api/admin/audios` is a follow-up once the admin
+/// content upload flow is built. "Manage Users" is fully wired to
+/// `/api/admin/users`.
 class AdminDashboardShell extends ConsumerWidget {
   const AdminDashboardShell({super.key});
 
   static const _panels = [
-    (title: 'Manage Shows', icon: Icons.podcasts, accent: AppColors.crimson),
-    (title: 'Manage Audios', icon: Icons.audiotrack, accent: AppColors.teal),
-    (title: 'Manage Users', icon: Icons.people_alt, accent: AppColors.gold),
+    (
+      title: 'Manage Shows',
+      subtitle: 'Coming soon',
+      icon: Icons.podcasts,
+      accent: AppColors.crimson,
+    ),
+    (
+      title: 'Manage Audios',
+      subtitle: 'Coming soon',
+      icon: Icons.audiotrack,
+      accent: AppColors.teal,
+    ),
+    (
+      title: 'Manage Users',
+      subtitle: 'View accounts, suspend access',
+      icon: Icons.people_alt,
+      accent: AppColors.gold,
+    ),
   ];
+
+  static const _destinations = [
+    ManageShowsScreen(),
+    ManageAudiosScreen(),
+    ManageUsersScreen(),
+  ];
+
+  void _openPanel(BuildContext context, int index) {
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => _destinations[index]),
+    );
+  }
 
   Future<void> _logout(BuildContext context, WidgetRef ref) async {
     await ref.read(authNotifierProvider.notifier).logout();
@@ -47,9 +78,7 @@ class AdminDashboardShell extends ConsumerWidget {
           final panel = _panels[index];
           return InkWell(
             borderRadius: BorderRadius.circular(20),
-            onTap: () => ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('${panel.title} is coming soon')),
-            ),
+            onTap: () => _openPanel(context, index),
             child: Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
@@ -72,7 +101,7 @@ class AdminDashboardShell extends ConsumerWidget {
                         Text(panel.title, style: Theme.of(context).textTheme.titleLarge),
                         const SizedBox(height: 4),
                         Text(
-                          'Coming soon',
+                          panel.subtitle,
                           style: TextStyle(color: AppColors.offWhite.withValues(alpha: 0.55)),
                         ),
                       ],

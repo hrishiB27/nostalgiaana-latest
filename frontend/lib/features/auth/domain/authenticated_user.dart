@@ -1,3 +1,4 @@
+import '../../user/data/models/user_profile_model.dart';
 import '../data/models/auth_response_model.dart';
 import '../data/models/user_role.dart';
 
@@ -27,6 +28,19 @@ class AuthenticatedUser {
       email: response.email,
       role: response.role,
       membershipStatus: response.membershipStatus,
+    );
+  }
+
+  // Used by [AuthNotifier.refreshProfile] to re-sync role/membershipStatus
+  // after a payment, without needing a fresh login.
+  factory AuthenticatedUser.fromProfile(UserProfileModel profile) {
+    return AuthenticatedUser(
+      id: profile.id,
+      firstName: profile.firstName,
+      lastName: profile.lastName,
+      email: profile.email,
+      role: profile.role,
+      membershipStatus: profile.membershipStatus,
     );
   }
 }

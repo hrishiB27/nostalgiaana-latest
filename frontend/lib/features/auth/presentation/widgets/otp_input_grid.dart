@@ -103,7 +103,7 @@ class OtpInputGridState extends State<OtpInputGrid> {
   }
 }
 
-class _OtpBox extends StatelessWidget {
+class _OtpBox extends StatefulWidget {
   const _OtpBox({
     required this.controller,
     required this.focusNode,
@@ -119,31 +119,51 @@ class _OtpBox extends StatelessWidget {
   final VoidCallback onBackspace;
 
   @override
+  State<_OtpBox> createState() => _OtpBoxState();
+}
+
+class _OtpBoxState extends State<_OtpBox> {
+  // KeyboardListener requires its own FocusNode. Handing it widget.focusNode
+  // — the same node the TextField below attaches — would make that node an
+  // ancestor and descendant of itself in the focus tree at once, which trips
+  // a 'child != this' assertion in FocusNode._reparent. This node never
+  // requests focus itself; it only exists to host onKeyEvent, which still
+  // fires for backspace because unhandled key events bubble up from the
+  // focused TextField through its ancestors.
+  final _keyboardFocusNode = FocusNode(canRequestFocus: false, skipTraversal: true);
+
+  @override
+  void dispose() {
+    _keyboardFocusNode.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return SizedBox(
       width: 46,
       height: 56,
       child: KeyboardListener(
-        focusNode: focusNode,
+        focusNode: _keyboardFocusNode,
         onKeyEvent: (event) {
           if (event is KeyDownEvent && event.logicalKey == LogicalKeyboardKey.backspace) {
-            onBackspace();
+            widget.onBackspace();
           }
         },
         child: ListenableBuilder(
-          listenable: focusNode,
+          listenable: widget.focusNode,
           builder: (context, child) {
             return DecoratedBox(
               decoration: BoxDecoration(
                 color: Colors.white.withValues(alpha: 0.08),
                 borderRadius: BorderRadius.circular(14),
                 border: Border.all(
-                  color: focusNode.hasFocus
+                  color: widget.focusNode.hasFocus
                       ? AppColors.teal
                       : Colors.white.withValues(alpha: 0.16),
                   width: 1.4,
                 ),
-                boxShadow: focusNode.hasFocus
+                boxShadow: widget.focusNode.hasFocus
                     ? [
                         BoxShadow(
                           color: AppColors.teal.withValues(alpha: 0.35),
@@ -157,10 +177,10 @@ class _OtpBox extends StatelessWidget {
             );
           },
           child: TextField(
-            controller: controller,
-            focusNode: focusNode,
-            enabled: enabled,
-            onChanged: onChanged,
+            controller: widget.controller,
+            focusNode: widget.focusNode,
+            enabled: widget.enabled,
+            onChanged: widget.onChanged,
             textAlign: TextAlign.center,
             keyboardType: TextInputType.number,
             maxLength: 1,

@@ -19,7 +19,7 @@ class AdminErrorView extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(message, textAlign: TextAlign.center, style: const TextStyle(color: AppColors.offWhite)),
+            Text(message, textAlign: TextAlign.center, style: const TextStyle(color: AppColors.charcoal)),
             const SizedBox(height: 16),
             ElevatedButton(onPressed: onRetry, child: const Text('Retry')),
           ],

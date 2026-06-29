@@ -1,66 +1,86 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
-/// "Modern Retro" palette lifted from the Nostalgiaana logo.
+/// "Modern Retro" cream/crimson palette — the app's one and only theme.
+/// `charcoal` is the primary text/icon color (dark-on-light); `cream`/
+/// `panelCream` are the two background tones.
 class AppColors {
   const AppColors._();
 
-  static const charcoal = Color(0xFF212121);
-  static const offWhite = Color(0xFFF5F5F0);
-  static const crimson = Color(0xFFD32F2F);
+  static const cream = Color(0xFFFDFBF7);
+  static const panelCream = Color(0xFFFDF5EC);
+  static const crimson = Color(0xFFC62828);
   static const teal = Color(0xFF00897B);
   static const gold = Color(0xFFFBC02D);
+  static const charcoal = Color(0xFF212121);
 }
 
 class AppTheme {
   const AppTheme._();
 
-  static ThemeData get darkTheme {
-    const colorScheme = ColorScheme.dark(
-      surface: AppColors.charcoal,
-      primary: AppColors.crimson,
-      secondary: AppColors.teal,
-      tertiary: AppColors.gold,
-      error: AppColors.gold,
-      onSurface: AppColors.offWhite,
-      onPrimary: AppColors.offWhite,
-      onSecondary: AppColors.offWhite,
-      onError: AppColors.charcoal,
+  static ThemeData get theme {
+    final base = GoogleFonts.interTextTheme();
+    final textTheme = base.copyWith(
+      headlineLarge: GoogleFonts.playfairDisplay(
+        color: AppColors.charcoal,
+        fontWeight: FontWeight.w700,
+        fontSize: 28,
+      ),
+      headlineMedium: GoogleFonts.playfairDisplay(
+        color: AppColors.crimson,
+        fontWeight: FontWeight.w700,
+        fontSize: 24,
+      ),
+      titleLarge: GoogleFonts.playfairDisplay(
+        color: AppColors.charcoal,
+        fontWeight: FontWeight.w600,
+        fontSize: 20,
+      ),
+      bodyMedium: GoogleFonts.inter(color: AppColors.charcoal, fontSize: 14),
+      bodySmall: GoogleFonts.inter(color: AppColors.charcoal.withValues(alpha: 0.65), fontSize: 13),
+      labelLarge: GoogleFonts.inter(fontWeight: FontWeight.w600, fontSize: 15),
     );
 
     return ThemeData(
       useMaterial3: true,
-      brightness: Brightness.dark,
-      colorScheme: colorScheme,
-      scaffoldBackgroundColor: AppColors.charcoal,
-      fontFamily: 'Roboto',
-      textTheme: const TextTheme(
-        headlineMedium: TextStyle(
-          color: AppColors.offWhite,
-          fontWeight: FontWeight.bold,
-        ),
-        titleLarge: TextStyle(color: AppColors.offWhite, fontWeight: FontWeight.w600),
-        bodyMedium: TextStyle(color: AppColors.offWhite),
-        bodySmall: TextStyle(color: Color(0xB3F5F5F0)),
+      brightness: Brightness.light,
+      colorScheme: ColorScheme.light(
+        surface: AppColors.cream,
+        primary: AppColors.crimson,
+        secondary: AppColors.teal,
+        tertiary: AppColors.gold,
+        error: AppColors.crimson,
+        onSurface: AppColors.charcoal,
+        onPrimary: Colors.white,
+        onSecondary: Colors.white,
+        onError: Colors.white,
       ),
-      iconTheme: const IconThemeData(color: AppColors.offWhite),
-      appBarTheme: const AppBarTheme(
-        backgroundColor: AppColors.charcoal,
-        foregroundColor: AppColors.offWhite,
+      scaffoldBackgroundColor: AppColors.cream,
+      textTheme: textTheme,
+      iconTheme: const IconThemeData(color: AppColors.charcoal),
+      appBarTheme: AppBarTheme(
+        backgroundColor: AppColors.cream,
+        foregroundColor: AppColors.charcoal,
         elevation: 0,
         centerTitle: true,
+        titleTextStyle: GoogleFonts.playfairDisplay(
+          color: AppColors.charcoal,
+          fontWeight: FontWeight.w600,
+          fontSize: 20,
+        ),
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: Colors.white.withValues(alpha: 0.06),
-        labelStyle: const TextStyle(color: AppColors.offWhite),
-        hintStyle: TextStyle(color: AppColors.offWhite.withValues(alpha: 0.5)),
+        fillColor: AppColors.panelCream,
+        labelStyle: GoogleFonts.inter(color: AppColors.charcoal.withValues(alpha: 0.7)),
+        hintStyle: GoogleFonts.inter(color: AppColors.charcoal.withValues(alpha: 0.5)),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
-          borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.12)),
+          borderSide: BorderSide(color: AppColors.crimson.withValues(alpha: 0.15)),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
-          borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.12)),
+          borderSide: BorderSide(color: AppColors.crimson.withValues(alpha: 0.15)),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
@@ -68,19 +88,19 @@ class AppTheme {
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
-          borderSide: const BorderSide(color: AppColors.gold, width: 1.4),
+          borderSide: const BorderSide(color: AppColors.crimson, width: 1.4),
         ),
         focusedErrorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
-          borderSide: const BorderSide(color: AppColors.gold, width: 1.8),
+          borderSide: const BorderSide(color: AppColors.crimson, width: 1.8),
         ),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.crimson,
-          foregroundColor: AppColors.offWhite,
+          foregroundColor: Colors.white,
           disabledBackgroundColor: AppColors.crimson.withValues(alpha: 0.4),
-          disabledForegroundColor: AppColors.offWhite.withValues(alpha: 0.7),
+          disabledForegroundColor: Colors.white.withValues(alpha: 0.7),
           padding: const EdgeInsets.symmetric(vertical: 16),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
           textStyle: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
@@ -91,4 +111,11 @@ class AppTheme {
       ),
     );
   }
+
+  /// The script-style "Where Memories Matter" tagline under the logo badge.
+  static TextStyle get taglineStyle => GoogleFonts.dancingScript(
+        color: AppColors.gold,
+        fontWeight: FontWeight.w600,
+        fontSize: 16,
+      );
 }

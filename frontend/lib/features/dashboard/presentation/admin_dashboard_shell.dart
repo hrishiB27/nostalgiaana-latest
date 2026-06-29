@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/config/theme_config.dart';
+import '../../../sampleui/screens/auth_landing_screen.dart';
 import '../../admin/presentation/manage_audios_screen.dart';
 import '../../admin/presentation/manage_shows_screen.dart';
 import '../../admin/presentation/manage_users_screen.dart';
 import '../../auth/application/auth_notifier.dart';
-import '../../auth/presentation/role_selection_screen.dart';
 
 /// Management shell an ADMIN lands on after OTP verification. "Manage
 /// Shows"/"Manage Audios" still route to placeholder screens — wiring them
@@ -53,7 +53,7 @@ class AdminDashboardShell extends ConsumerWidget {
     await ref.read(authNotifierProvider.notifier).logout();
     if (!context.mounted) return;
     Navigator.of(context).pushAndRemoveUntil(
-      MaterialPageRoute(builder: (_) => const RoleSelectionScreen()),
+      MaterialPageRoute(builder: (_) => const AuthLandingScreen()),
       (route) => false,
     );
   }
@@ -66,7 +66,7 @@ class AdminDashboardShell extends ConsumerWidget {
         actions: [
           IconButton(
             onPressed: () => _logout(context, ref),
-            icon: const Icon(Icons.logout, color: AppColors.offWhite),
+            icon: const Icon(Icons.logout, color: AppColors.charcoal),
           ),
         ],
       ),
@@ -83,7 +83,7 @@ class AdminDashboardShell extends ConsumerWidget {
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(20),
-                color: Colors.white.withValues(alpha: 0.05),
+                color: AppColors.panelCream,
                 border: Border.all(color: panel.accent.withValues(alpha: 0.35)),
               ),
               child: Row(
@@ -102,12 +102,12 @@ class AdminDashboardShell extends ConsumerWidget {
                         const SizedBox(height: 4),
                         Text(
                           panel.subtitle,
-                          style: TextStyle(color: AppColors.offWhite.withValues(alpha: 0.55)),
+                          style: TextStyle(color: AppColors.charcoal.withValues(alpha: 0.55)),
                         ),
                       ],
                     ),
                   ),
-                  Icon(Icons.chevron_right, color: AppColors.offWhite.withValues(alpha: 0.4)),
+                  Icon(Icons.chevron_right, color: AppColors.charcoal.withValues(alpha: 0.4)),
                 ],
               ),
             ),

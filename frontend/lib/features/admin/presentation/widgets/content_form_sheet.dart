@@ -113,7 +113,7 @@ class _ContentFormSheetState extends ConsumerState<ContentFormSheet> {
       padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
       child: Container(
         decoration: const BoxDecoration(
-          color: AppColors.charcoal,
+          color: AppColors.cream,
           borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
         ),
         child: SafeArea(
@@ -131,7 +131,7 @@ class _ContentFormSheetState extends ConsumerState<ContentFormSheet> {
                       height: 4,
                       margin: const EdgeInsets.only(bottom: 20),
                       decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.2),
+                        color: AppColors.charcoal.withValues(alpha: 0.2),
                         borderRadius: BorderRadius.circular(4),
                       ),
                     ),
@@ -143,7 +143,7 @@ class _ContentFormSheetState extends ConsumerState<ContentFormSheet> {
                   const SizedBox(height: 20),
                   TextFormField(
                     controller: _titleController,
-                    style: const TextStyle(color: AppColors.offWhite),
+                    style: const TextStyle(color: AppColors.charcoal),
                     decoration: const InputDecoration(labelText: 'Title'),
                     validator: (value) =>
                         (value == null || value.trim().isEmpty) ? 'Required' : null,
@@ -151,7 +151,7 @@ class _ContentFormSheetState extends ConsumerState<ContentFormSheet> {
                   const SizedBox(height: 16),
                   TextFormField(
                     controller: _descriptionController,
-                    style: const TextStyle(color: AppColors.offWhite),
+                    style: const TextStyle(color: AppColors.charcoal),
                     minLines: 2,
                     maxLines: 4,
                     decoration: const InputDecoration(labelText: 'Description (optional)'),
@@ -159,7 +159,7 @@ class _ContentFormSheetState extends ConsumerState<ContentFormSheet> {
                   const SizedBox(height: 16),
                   TextFormField(
                     controller: _speakerController,
-                    style: const TextStyle(color: AppColors.offWhite),
+                    style: const TextStyle(color: AppColors.charcoal),
                     decoration: const InputDecoration(labelText: 'Speaker (optional)'),
                   ),
                   const SizedBox(height: 16),
@@ -167,8 +167,8 @@ class _ContentFormSheetState extends ConsumerState<ContentFormSheet> {
                     data: (items) => DropdownButtonFormField<String?>(
                       initialValue: _categoryId,
                       decoration: const InputDecoration(labelText: 'Category (optional)'),
-                      dropdownColor: AppColors.charcoal,
-                      style: const TextStyle(color: AppColors.offWhite),
+                      dropdownColor: AppColors.cream,
+                      style: const TextStyle(color: AppColors.charcoal),
                       items: [
                         const DropdownMenuItem<String?>(value: null, child: Text('None')),
                         ...items.map(
@@ -183,16 +183,16 @@ class _ContentFormSheetState extends ConsumerState<ContentFormSheet> {
                     loading: () => const LinearProgressIndicator(color: AppColors.teal),
                     error: (error, stackTrace) => Text(
                       'Could not load categories — you can still upload without one.',
-                      style: TextStyle(color: AppColors.offWhite.withValues(alpha: 0.6), fontSize: 12),
+                      style: TextStyle(color: AppColors.charcoal.withValues(alpha: 0.6), fontSize: 12),
                     ),
                   ),
                   const SizedBox(height: 16),
                   SwitchListTile(
                     contentPadding: EdgeInsets.zero,
-                    title: const Text('Premium content', style: TextStyle(color: AppColors.offWhite)),
+                    title: const Text('Premium content', style: TextStyle(color: AppColors.charcoal)),
                     subtitle: Text(
                       _isPremium ? 'Only PREMIUM/ADMIN accounts can stream this' : 'Free for all listeners',
-                      style: TextStyle(color: AppColors.offWhite.withValues(alpha: 0.55)),
+                      style: TextStyle(color: AppColors.charcoal.withValues(alpha: 0.55)),
                     ),
                     value: _isPremium,
                     activeThumbColor: AppColors.gold,
@@ -210,7 +210,7 @@ class _ContentFormSheetState extends ConsumerState<ContentFormSheet> {
                     const SizedBox(height: 6),
                     const Text(
                       'Required',
-                      style: TextStyle(color: AppColors.gold, fontSize: 12, fontWeight: FontWeight.w600),
+                      style: TextStyle(color: AppColors.crimson, fontSize: 12, fontWeight: FontWeight.w600),
                     ),
                   ],
                   const SizedBox(height: 12),
@@ -225,7 +225,7 @@ class _ContentFormSheetState extends ConsumerState<ContentFormSheet> {
                     const SizedBox(height: 16),
                     Text(
                       _submitError!,
-                      style: const TextStyle(color: AppColors.gold, fontWeight: FontWeight.w600),
+                      style: const TextStyle(color: AppColors.crimson, fontWeight: FontWeight.w600),
                     ),
                   ],
                   const SizedBox(height: 24),
@@ -236,7 +236,7 @@ class _ContentFormSheetState extends ConsumerState<ContentFormSheet> {
                         ? const SizedBox(
                             height: 20,
                             width: 20,
-                            child: CircularProgressIndicator(strokeWidth: 2.4, color: AppColors.offWhite),
+                            child: CircularProgressIndicator(strokeWidth: 2.4, color: Colors.white),
                           )
                         : Text(_isShow ? 'Upload Show' : 'Upload Audio'),
                   ),
@@ -274,8 +274,8 @@ class _FilePickerRow extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(14),
-          color: Colors.white.withValues(alpha: 0.06),
-          border: Border.all(color: Colors.white.withValues(alpha: 0.12)),
+          color: AppColors.panelCream,
+          border: Border.all(color: AppColors.charcoal.withValues(alpha: 0.12)),
         ),
         child: Row(
           children: [
@@ -285,12 +285,12 @@ class _FilePickerRow extends StatelessWidget {
               child: Text(
                 fileName ?? label,
                 style: TextStyle(
-                  color: fileName != null ? AppColors.offWhite : AppColors.offWhite.withValues(alpha: 0.6),
+                  color: fileName != null ? AppColors.charcoal : AppColors.charcoal.withValues(alpha: 0.6),
                 ),
                 overflow: TextOverflow.ellipsis,
               ),
             ),
-            Icon(Icons.attach_file, color: AppColors.offWhite.withValues(alpha: 0.4)),
+            Icon(Icons.attach_file, color: AppColors.charcoal.withValues(alpha: 0.4)),
           ],
         ),
       ),

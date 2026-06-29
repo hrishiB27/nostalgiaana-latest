@@ -71,7 +71,7 @@ class _ManageAudiosScreenState extends ConsumerState<ManageAudiosScreen> {
       }
       if (state.status == AdminContentStatus.loaded) {
         return const Center(
-          child: Text('No audios yet. Tap + to add one.', style: TextStyle(color: AppColors.offWhite)),
+          child: Text('No audios yet. Tap + to add one.', style: TextStyle(color: AppColors.charcoal)),
         );
       }
       return const Center(child: CircularProgressIndicator(color: AppColors.teal));

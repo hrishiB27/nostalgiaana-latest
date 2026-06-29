@@ -16,7 +16,7 @@ class NostalgiaanaApp extends StatelessWidget {
     return MaterialApp(
       title: 'Nostalgiaana',
       debugShowCheckedModeBanner: false,
-      theme: AppTheme.darkTheme,
+      theme: AppTheme.theme,
       home: const SplashScreen(),
     );
   }

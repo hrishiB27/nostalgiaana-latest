@@ -19,8 +19,8 @@ class ContentListTile extends StatelessWidget {
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(18),
-        color: Colors.white.withValues(alpha: 0.05),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+        color: AppColors.panelCream,
+        border: Border.all(color: AppColors.charcoal.withValues(alpha: 0.08)),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -44,7 +44,7 @@ class ContentListTile extends StatelessWidget {
                         ),
                       ),
                       child: const Center(
-                        child: Icon(Icons.graphic_eq, color: AppColors.offWhite, size: 24),
+                        child: Icon(Icons.graphic_eq, color: AppColors.charcoal, size: 24),
                       ),
                     ),
             ),
@@ -81,7 +81,7 @@ class ContentListTile extends StatelessWidget {
                   const SizedBox(height: 2),
                   Text(
                     'Uploaded by ${item.uploadedByName}',
-                    style: TextStyle(color: AppColors.offWhite.withValues(alpha: 0.45), fontSize: 11),
+                    style: TextStyle(color: AppColors.charcoal.withValues(alpha: 0.45), fontSize: 11),
                     overflow: TextOverflow.ellipsis,
                   ),
                 ],

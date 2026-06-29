@@ -38,10 +38,10 @@ class _PremiumUpgradeSheetState extends ConsumerState<PremiumUpgradeSheet> {
         Navigator.of(context).pop();
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            backgroundColor: AppColors.charcoal,
+            backgroundColor: AppColors.panelCream,
             content: Text(
               'Welcome to Premium! Enjoy unlimited high-fidelity streaming.',
-              style: TextStyle(color: AppColors.gold, fontWeight: FontWeight.w600),
+              style: TextStyle(color: AppColors.crimson, fontWeight: FontWeight.w600),
             ),
           ),
         );
@@ -54,7 +54,7 @@ class _PremiumUpgradeSheetState extends ConsumerState<PremiumUpgradeSheet> {
       padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
       child: Container(
         decoration: const BoxDecoration(
-          color: AppColors.charcoal,
+          color: AppColors.cream,
           borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
         ),
         child: SafeArea(
@@ -71,7 +71,7 @@ class _PremiumUpgradeSheetState extends ConsumerState<PremiumUpgradeSheet> {
                     height: 4,
                     margin: const EdgeInsets.only(bottom: 20),
                     decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.2),
+                      color: AppColors.charcoal.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(4),
                     ),
                   ),
@@ -161,7 +161,7 @@ class _BenefitRow extends StatelessWidget {
       children: [
         Icon(icon, color: AppColors.teal, size: 20),
         const SizedBox(width: 12),
-        Expanded(child: Text(label, style: const TextStyle(color: AppColors.offWhite))),
+        Expanded(child: Text(label, style: const TextStyle(color: AppColors.charcoal))),
       ],
     );
   }

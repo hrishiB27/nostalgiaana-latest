@@ -27,7 +27,7 @@ class NowPlayingBar extends ConsumerWidget {
         : (state.position.inMilliseconds / duration.inMilliseconds).clamp(0.0, 1.0);
 
     return Material(
-      color: AppColors.charcoal,
+      color: AppColors.panelCream,
       child: SafeArea(
         top: false,
         child: Column(
@@ -36,7 +36,7 @@ class NowPlayingBar extends ConsumerWidget {
             LinearProgressIndicator(
               value: progress,
               minHeight: 2,
-              backgroundColor: Colors.white.withValues(alpha: 0.08),
+              backgroundColor: AppColors.charcoal.withValues(alpha: 0.1),
               color: AppColors.teal,
             ),
             Padding(
@@ -51,12 +51,12 @@ class NowPlayingBar extends ConsumerWidget {
                       children: [
                         Text(
                           state.title ?? '',
-                          style: const TextStyle(color: AppColors.offWhite, fontWeight: FontWeight.w600),
+                          style: const TextStyle(color: AppColors.charcoal, fontWeight: FontWeight.w600),
                           overflow: TextOverflow.ellipsis,
                         ),
                         Text(
                           '${_format(state.position)} / ${_format(duration)}',
-                          style: TextStyle(color: AppColors.offWhite.withValues(alpha: 0.55), fontSize: 11),
+                          style: TextStyle(color: AppColors.charcoal.withValues(alpha: 0.55), fontSize: 11),
                         ),
                       ],
                     ),
@@ -75,7 +75,7 @@ class NowPlayingBar extends ConsumerWidget {
                       onPressed: () => ref.read(audioPlayerProvider.notifier).togglePlayPause(),
                       icon: Icon(
                         state.isPlaying ? Icons.pause_circle_filled : Icons.play_circle_filled,
-                        color: AppColors.offWhite,
+                        color: AppColors.charcoal,
                         size: 32,
                       ),
                     ),

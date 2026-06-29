@@ -95,7 +95,7 @@ class _ContentDetailScreenState extends ConsumerState<ContentDetailScreen> {
                         child: Center(
                           child: Icon(
                             isAudio ? Icons.graphic_eq : Icons.movie_outlined,
-                            color: AppColors.offWhite,
+                            color: AppColors.charcoal,
                             size: 48,
                           ),
                         ),
@@ -137,7 +137,7 @@ class _ContentDetailScreenState extends ConsumerState<ContentDetailScreen> {
                   ? const SizedBox(
                       height: 18,
                       width: 18,
-                      child: CircularProgressIndicator(strokeWidth: 2.2, color: AppColors.offWhite),
+                      child: CircularProgressIndicator(strokeWidth: 2.2, color: Colors.white),
                     )
                   : const Icon(Icons.play_arrow),
               label: const Text('Play Now'),

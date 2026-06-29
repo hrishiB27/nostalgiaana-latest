@@ -4,9 +4,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/config/theme_config.dart';
 import '../../../core/network/api_error.dart';
 import '../../../core/widgets/tier_badge.dart';
+import '../../../sampleui/screens/auth_landing_screen.dart';
 import '../../auth/application/auth_notifier.dart';
 import '../../auth/data/models/user_role.dart';
-import '../../auth/presentation/role_selection_screen.dart';
 import '../../category/application/category_providers.dart';
 import '../../content/application/listener_content_providers.dart';
 import '../../content/data/models/content_response_model.dart';
@@ -33,7 +33,7 @@ class _UserHomeScreenShellState extends ConsumerState<UserHomeScreenShell> {
     await ref.read(authNotifierProvider.notifier).logout();
     if (!mounted) return;
     Navigator.of(context).pushAndRemoveUntil(
-      MaterialPageRoute(builder: (_) => const RoleSelectionScreen()),
+      MaterialPageRoute(builder: (_) => const AuthLandingScreen()),
       (route) => false,
     );
   }
@@ -92,7 +92,7 @@ class _UserHomeScreenShellState extends ConsumerState<UserHomeScreenShell> {
                   ? Center(
                       child: Text(
                         'Nothing here yet.',
-                        style: TextStyle(color: AppColors.offWhite.withValues(alpha: 0.5)),
+                        style: TextStyle(color: AppColors.charcoal.withValues(alpha: 0.5)),
                       ),
                     )
                   : ListView.separated(
@@ -138,7 +138,7 @@ class _UserHomeScreenShellState extends ConsumerState<UserHomeScreenShell> {
             ),
           IconButton(
             onPressed: _logout,
-            icon: const Icon(Icons.logout, color: AppColors.offWhite),
+            icon: const Icon(Icons.logout, color: AppColors.charcoal),
           ),
         ],
       ),
@@ -173,9 +173,9 @@ class _CategoryChip extends StatelessWidget {
       selected: selected,
       onSelected: (_) => onTap(),
       selectedColor: AppColors.crimson,
-      backgroundColor: Colors.white.withValues(alpha: 0.06),
+      backgroundColor: AppColors.panelCream,
       labelStyle: TextStyle(
-        color: selected ? AppColors.offWhite : AppColors.offWhite.withValues(alpha: 0.7),
+        color: selected ? Colors.white : AppColors.charcoal.withValues(alpha: 0.7),
         fontWeight: FontWeight.w600,
       ),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
@@ -223,7 +223,7 @@ class _ContentCard extends StatelessWidget {
                                 item.contentType == ContentType.audio
                                     ? Icons.graphic_eq
                                     : Icons.movie_outlined,
-                                color: AppColors.offWhite,
+                                color: AppColors.charcoal,
                                 size: 32,
                               ),
                             ),
@@ -243,14 +243,14 @@ class _ContentCard extends StatelessWidget {
               item.title,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: const TextStyle(color: AppColors.offWhite, fontWeight: FontWeight.w600),
+              style: const TextStyle(color: AppColors.charcoal, fontWeight: FontWeight.w600),
             ),
             if (item.speaker != null)
               Text(
                 item.speaker!,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: TextStyle(color: AppColors.offWhite.withValues(alpha: 0.55), fontSize: 12),
+                style: TextStyle(color: AppColors.charcoal.withValues(alpha: 0.55), fontSize: 12),
               ),
           ],
         ),

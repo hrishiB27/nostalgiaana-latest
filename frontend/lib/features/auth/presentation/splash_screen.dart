@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import '../../../core/config/theme_config.dart';
-import 'role_selection_screen.dart';
+import '../../../sampleui/screens/auth_landing_screen.dart';
 
 class _NoteSpec {
   const _NoteSpec({
@@ -73,17 +73,17 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
       _logoController.forward().whenComplete(() {
         if (!mounted) return;
         _holdTimer = Timer(const Duration(milliseconds: 1500), () {
-          if (mounted) _goToRoleSelection();
+          if (mounted) _goToAuthLanding();
         });
       });
     });
   }
 
-  void _goToRoleSelection() {
+  void _goToAuthLanding() {
     Navigator.of(context).pushReplacement(
       PageRouteBuilder(
         transitionDuration: const Duration(milliseconds: 700),
-        pageBuilder: (_, _, _) => const RoleSelectionScreen(),
+        pageBuilder: (_, _, _) => const AuthLandingScreen(),
         transitionsBuilder: (_, animation, _, child) =>
             FadeTransition(opacity: animation, child: child),
       ),
@@ -107,7 +107,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.charcoal,
+      backgroundColor: AppColors.cream,
       body: Stack(
         alignment: Alignment.center,
         children: [
@@ -115,7 +115,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
             decoration: BoxDecoration(
               gradient: RadialGradient(
                 radius: 1.1,
-                colors: [Color(0x2600897B), Colors.transparent],
+                colors: [Color(0x1AC62828), Colors.transparent],
               ),
             ),
           ),
@@ -141,9 +141,9 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                             shape: BoxShape.circle,
                             boxShadow: [
                               BoxShadow(
-                                color: note.color.withValues(alpha: 0.6),
-                                blurRadius: 22,
-                                spreadRadius: 2,
+                                color: note.color.withValues(alpha: 0.35),
+                                blurRadius: 18,
+                                spreadRadius: 1,
                               ),
                             ],
                           ),

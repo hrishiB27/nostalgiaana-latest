@@ -37,7 +37,7 @@ class _ManageUsersScreenState extends ConsumerState<ManageUsersScreen> {
           ),
           TextButton(
             onPressed: () => Navigator.of(context).pop(true),
-            style: TextButton.styleFrom(foregroundColor: AppColors.gold),
+            style: TextButton.styleFrom(foregroundColor: AppColors.crimson),
             child: const Text('Suspend'),
           ),
         ],
@@ -58,7 +58,7 @@ class _ManageUsersScreenState extends ConsumerState<ManageUsersScreen> {
       }
       if (state.status == AdminUsersStatus.loaded) {
         return const Center(
-          child: Text('No users yet.', style: TextStyle(color: AppColors.offWhite)),
+          child: Text('No users yet.', style: TextStyle(color: AppColors.charcoal)),
         );
       }
       return const Center(child: CircularProgressIndicator(color: AppColors.teal));
@@ -102,8 +102,8 @@ class _UserRow extends StatelessWidget {
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(18),
-          color: Colors.white.withValues(alpha: 0.05),
-          border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+          color: AppColors.panelCream,
+          border: Border.all(color: AppColors.charcoal.withValues(alpha: 0.08)),
         ),
         child: Row(
           children: [

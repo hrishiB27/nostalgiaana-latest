@@ -10,13 +10,13 @@ class AuthenticatedUser {
     required this.lastName,
     required this.role,
     required this.membershipStatus,
-    this.email,
+    this.phone,
   });
 
   final String id;
   final String firstName;
   final String lastName;
-  final String? email;
+  final String? phone;
   final UserRole role;
   final String membershipStatus;
 
@@ -25,7 +25,7 @@ class AuthenticatedUser {
       id: response.userId,
       firstName: response.firstName,
       lastName: response.lastName,
-      email: response.email,
+      phone: response.phone,
       role: response.role,
       membershipStatus: response.membershipStatus,
     );
@@ -38,7 +38,7 @@ class AuthenticatedUser {
       id: profile.id,
       firstName: profile.firstName,
       lastName: profile.lastName,
-      email: profile.email,
+      phone: profile.phone,
       role: profile.role,
       membershipStatus: profile.membershipStatus,
     );

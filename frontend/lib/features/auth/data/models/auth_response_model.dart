@@ -10,7 +10,7 @@ class AuthResponseModel {
     required this.lastName,
     required this.role,
     required this.membershipStatus,
-    this.email,
+    this.phone,
   });
 
   final String accessToken;
@@ -18,8 +18,7 @@ class AuthResponseModel {
   final String userId;
   final String firstName;
   final String lastName;
-  // Users can sign up with a phone number instead of an email, so this can be null.
-  final String? email;
+  final String? phone;
   final UserRole role;
   final String membershipStatus;
 
@@ -30,7 +29,7 @@ class AuthResponseModel {
       userId: json['userId'] as String,
       firstName: json['firstName'] as String,
       lastName: json['lastName'] as String,
-      email: json['email'] as String?,
+      phone: json['phone'] as String?,
       role: UserRole.fromJson(json['role'] as String),
       membershipStatus: json['membershipStatus'] as String,
     );

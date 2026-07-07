@@ -1,0 +1,15 @@
+ALTER TABLE users 
+    ALTER COLUMN role DROP DEFAULT,
+    ALTER COLUMN role TYPE VARCHAR(20) USING role::VARCHAR;
+
+ALTER TABLE subscriptions 
+    ALTER COLUMN plan_type TYPE VARCHAR(20) USING plan_type::VARCHAR,
+    ALTER COLUMN status TYPE VARCHAR(20) USING status::VARCHAR;
+
+ALTER TABLE payments 
+    ALTER COLUMN status TYPE VARCHAR(20) USING status::VARCHAR;
+
+DROP TYPE user_role CASCADE;
+DROP TYPE subscription_status CASCADE;
+DROP TYPE payment_status CASCADE;
+DROP TYPE plan_type CASCADE;

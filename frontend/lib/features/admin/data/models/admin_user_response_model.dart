@@ -7,7 +7,6 @@ class AdminUserResponseModel {
     required this.id,
     required this.firstName,
     required this.lastName,
-    required this.email,
     required this.phone,
     required this.country,
     required this.city,
@@ -22,7 +21,6 @@ class AdminUserResponseModel {
   // have neither name set.
   final String? firstName;
   final String? lastName;
-  final String? email;
   final String? phone;
   final String? country;
   final String? city;
@@ -41,7 +39,6 @@ class AdminUserResponseModel {
       id: json['id'] as String,
       firstName: json['firstName'] as String?,
       lastName: json['lastName'] as String?,
-      email: json['email'] as String?,
       phone: json['phone'] as String?,
       country: json['country'] as String?,
       city: json['city'] as String?,
@@ -57,7 +54,6 @@ class AdminUserResponseModel {
       id: id,
       firstName: firstName,
       lastName: lastName,
-      email: email,
       phone: phone,
       country: country,
       city: city,

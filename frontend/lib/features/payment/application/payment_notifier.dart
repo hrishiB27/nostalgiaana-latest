@@ -70,7 +70,7 @@ class PaymentNotifier extends Notifier<PaymentState> {
         'currency': order.currency,
         'name': 'Nostalgiaana',
         'description': 'Premium upgrade',
-        if (user?.email != null) 'prefill': {'email': user!.email},
+        if (user?.phone != null) 'prefill': {'contact': user!.phone},
       });
     } catch (error) {
       state = state.copyWith(status: PaymentStatus.failure, errorMessage: messageFor(error));

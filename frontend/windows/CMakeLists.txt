@@ -32,6 +32,14 @@ set(CMAKE_CXX_FLAGS_PROFILE "${CMAKE_CXX_FLAGS_RELEASE}")
 # Use Unicode for all projects.
 add_definitions(-DUNICODE -D_UNICODE)
 
+# Silence MSVC's C2338 static_assert on the deprecated <experimental/coroutine>
+# header, which just_audio_windows still includes. Set as a directory-scoped
+# compile definition (not a per-target one) here, before any add_subdirectory
+# call below, so it's inherited by every subdirectory this file adds —
+# including the plugin targets pulled in via generated_plugins.cmake further
+# down, which is how just_audio_windows actually gets built.
+add_compile_definitions(_SILENCE_EXPERIMENTAL_COROUTINE_DEPRECATION_WARNINGS)
+
 # Compilation settings that should be applied to most targets.
 #
 # Be cautious about adding new options here, as plugins use this function by

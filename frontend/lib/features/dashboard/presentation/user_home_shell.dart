@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/config/theme_config.dart';
 import '../../../core/network/api_error.dart';
+import '../../../core/widgets/nostalgiaana_brand_text.dart';
 import '../../../core/widgets/tier_badge.dart';
 import '../../../sampleui/screens/auth_landing_screen.dart';
 import '../../auth/application/auth_notifier.dart';
@@ -41,21 +42,25 @@ class _UserHomeScreenShellState extends ConsumerState<UserHomeScreenShell> {
   Widget _buildCategoryChips() {
     final categories = ref.watch(categoriesProvider);
     return SizedBox(
-      height: 44,
+      height: 134,
       child: categories.when(
         data: (items) => ListView(
           scrollDirection: Axis.horizontal,
           padding: const EdgeInsets.symmetric(horizontal: 20),
           children: [
-            _CategoryChip(
+            _CategoryCard(
               label: 'All',
+              icon: Icons.apps_rounded,
+              gradient: const [AppColors.charcoal, Color(0xFF56636A)],
               selected: _selectedCategoryId == null,
               onTap: () => setState(() => _selectedCategoryId = null),
             ),
-            for (final category in items) ...[
-              const SizedBox(width: 10),
-              _CategoryChip(
+            for (final (index, category) in items.indexed) ...[
+              const SizedBox(width: 12),
+              _CategoryCard(
                 label: category.name,
+                icon: _iconForCategory(category.name),
+                gradient: _gradientForIndex(index),
                 selected: _selectedCategoryId == category.id,
                 onTap: () => setState(() => _selectedCategoryId = category.id),
               ),
@@ -128,7 +133,9 @@ class _UserHomeScreenShellState extends ConsumerState<UserHomeScreenShell> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Nostalgiaana'),
+        title: const NostalgiaanaBrandText(
+          style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
+        ),
         actions: [
           if (isListener)
             IconButton(
@@ -159,26 +166,94 @@ class _UserHomeScreenShellState extends ConsumerState<UserHomeScreenShell> {
   }
 }
 
-class _CategoryChip extends StatelessWidget {
-  const _CategoryChip({required this.label, required this.selected, required this.onTap});
+/// Cycling set of theme-derived gradients for the category cards — each
+/// pairs a core `AppColors` tone with a lighter tint of itself so cards
+/// stay within the app's "Modern Retro" palette rather than introducing
+/// unrelated colors.
+const _categoryGradients = [
+  [AppColors.crimson, Color(0xFFE57373)],
+  [AppColors.teal, Color(0xFF4DB6AC)],
+  [AppColors.gold, Color(0xFFFFD54F)],
+  [Color(0xFF8D6E63), Color(0xFFBCAAA4)],
+];
+
+List<Color> _gradientForIndex(int index) => _categoryGradients[index % _categoryGradients.length];
+
+/// Picks an icon relevant to the category's name; falls back to a generic
+/// tag icon for anything that doesn't match a known theme.
+IconData _iconForCategory(String name) {
+  final normalized = name.toLowerCase();
+  if (normalized.contains('trivia') || normalized.contains('quiz')) return Icons.quiz_rounded;
+  if (normalized.contains('interview')) return Icons.mic_rounded;
+  if (normalized.contains('podcast')) return Icons.podcasts_rounded;
+  if (normalized.contains('song') ||
+      normalized.contains('film') ||
+      normalized.contains('music')) {
+    return Icons.music_note_rounded;
+  }
+  return Icons.local_offer_rounded;
+}
+
+class _CategoryCard extends StatelessWidget {
+  const _CategoryCard({
+    required this.label,
+    required this.icon,
+    required this.gradient,
+    required this.selected,
+    required this.onTap,
+  });
 
   final String label;
+  final IconData icon;
+  final List<Color> gradient;
   final bool selected;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    return ChoiceChip(
-      label: Text(label),
-      selected: selected,
-      onSelected: (_) => onTap(),
-      selectedColor: AppColors.crimson,
-      backgroundColor: AppColors.panelCream,
-      labelStyle: TextStyle(
-        color: selected ? Colors.white : AppColors.charcoal.withValues(alpha: 0.7),
-        fontWeight: FontWeight.w600,
+    final foreground = gradient.first == AppColors.gold ? AppColors.charcoal : Colors.white;
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        width: 132,
+        height: 128,
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 16),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: gradient,
+          ),
+          borderRadius: BorderRadius.circular(20),
+          border: selected ? Border.all(color: AppColors.charcoal, width: 2.5) : null,
+          boxShadow: [
+            BoxShadow(
+              color: gradient.first.withValues(alpha: selected ? 0.45 : 0.2),
+              blurRadius: selected ? 14 : 6,
+              offset: const Offset(0, 6),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Icon(icon, color: foreground, size: 30),
+            Text(
+              label,
+              maxLines: 3,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                color: foreground,
+                fontWeight: FontWeight.w700,
+                fontSize: 14,
+                height: 1.15,
+              ),
+            ),
+          ],
+        ),
       ),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
     );
   }
 }

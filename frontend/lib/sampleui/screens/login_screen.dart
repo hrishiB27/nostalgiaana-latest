@@ -9,6 +9,7 @@ import '../../features/auth/application/auth_state.dart';
 import '../../features/auth/presentation/post_auth_router.dart';
 import '../../core/config/theme_config.dart';
 import '../widgets/auth_secondary_button.dart';
+import '../widgets/retro_doodle_background.dart';
 
 /// Login form reached from the landing screen's "Login" button. Unlike
 /// [CreateAccountScreen], login has a real OTP step on the backend
@@ -56,7 +57,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   void _submitCredentials() {
     if (!(_formKey.currentState?.validate() ?? false)) return;
-    ref.read(authNotifierProvider.notifier).login(
+    ref
+        .read(authNotifierProvider.notifier)
+        .login(
           identifier: _identifierController.text.trim(),
           password: _passwordController.text,
         );
@@ -64,7 +67,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   void _resend() {
     if (_resendSecondsRemaining > 0) return;
-    ref.read(authNotifierProvider.notifier).login(
+    ref
+        .read(authNotifierProvider.notifier)
+        .login(
           identifier: _identifierController.text.trim(),
           password: _passwordController.text,
         );
@@ -73,7 +78,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     ref.listen<AuthState>(authNotifierProvider, (previous, next) {
-      if (next.status == AuthStatus.otpRequired && previous?.status != AuthStatus.otpRequired) {
+      if (next.status == AuthStatus.otpRequired &&
+          previous?.status != AuthStatus.otpRequired) {
         _startResendCooldown();
       }
       if (next.status == AuthStatus.authenticated && next.user != null) {
@@ -91,15 +97,23 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     final isOtpPhase = authState.otpIdentifier != null;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Login')),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
-          child: AnimatedSwitcher(
-            duration: const Duration(milliseconds: 320),
-            child: isOtpPhase
-                ? _buildOtpPhase(authState, isLoading)
-                : _buildCredentialsPhase(authState, isLoading),
+      extendBodyBehindAppBar: true,
+      appBar: AppBar(
+        title: const Text('Login'),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+      ),
+      body: RetroDoodleBackground(
+        child: SafeArea(
+          child: SingleChildScrollView(
+            physics: const NeverScrollableScrollPhysics(),
+            padding: const EdgeInsets.all(24),
+            child: AnimatedSwitcher(
+              duration: const Duration(milliseconds: 320),
+              child: isOtpPhase
+                  ? _buildOtpPhase(authState, isLoading)
+                  : _buildCredentialsPhase(authState, isLoading),
+            ),
           ),
         ),
       ),
@@ -113,43 +127,66 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         key: const ValueKey('credentials-phase'),
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text('Welcome back', style: Theme.of(context).textTheme.headlineMedium),
-          const SizedBox(height: 6),
+          Text('Welcome back', style: Theme.of(context).textTheme.titleLarge),
+          const SizedBox(height: 4),
           Text(
             'Sign in to keep the memories playing',
             style: Theme.of(context).textTheme.bodySmall,
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 16),
           TextFormField(
             controller: _identifierController,
-            keyboardType: TextInputType.emailAddress,
-            decoration: const InputDecoration(labelText: 'Email or phone'),
-            validator: (value) => (value == null || value.trim().isEmpty) ? 'Required' : null,
+            keyboardType: TextInputType.phone,
+            decoration: const InputDecoration(
+              isDense: true,
+              labelText: 'Phone Number',
+            ),
+            validator: (value) {
+              final trimmed = value?.trim() ?? '';
+              if (trimmed.isEmpty) return 'Required';
+              if (!RegExp(r'^\d{10}$').hasMatch(trimmed)) {
+                return 'Enter a 10-digit phone number';
+              }
+              return null;
+            },
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 10),
           TextFormField(
             controller: _passwordController,
             obscureText: _obscurePassword,
             decoration: InputDecoration(
+              isDense: true,
               labelText: 'Password',
               suffixIcon: IconButton(
                 icon: Icon(
-                  _obscurePassword ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+                  _obscurePassword
+                      ? Icons.visibility_outlined
+                      : Icons.visibility_off_outlined,
                 ),
-                onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+                onPressed: () =>
+                    setState(() => _obscurePassword = !_obscurePassword),
               ),
             ),
-            validator: (value) => (value == null || value.isEmpty) ? 'Required' : null,
+            validator: (value) =>
+                (value == null || value.isEmpty) ? 'Required' : null,
           ),
-          if (authState.status == AuthStatus.error && authState.otpIdentifier == null) ...[
-            const SizedBox(height: 12),
+          if (authState.status == AuthStatus.error &&
+              authState.otpIdentifier == null) ...[
+            const SizedBox(height: 10),
             Text(
               authState.errorMessage ?? 'Something went wrong.',
-              style: const TextStyle(color: AppColors.crimson, fontWeight: FontWeight.w600),
+              style: const TextStyle(
+                color: AppColors.crimson,
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ],
-          const SizedBox(height: 24),
-          AuthSecondaryButton(label: 'Login', isLoading: isLoading, onPressed: _submitCredentials),
+          const SizedBox(height: 16),
+          AuthSecondaryButton(
+            label: 'Login',
+            isLoading: isLoading,
+            onPressed: _submitCredentials,
+          ),
         ],
       ),
     );
@@ -164,44 +201,53 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           alignment: Alignment.centerLeft,
           child: IconButton(
             padding: EdgeInsets.zero,
-            onPressed: isLoading ? null : () => ref.read(authNotifierProvider.notifier).reset(),
+            onPressed: isLoading
+                ? null
+                : () => ref.read(authNotifierProvider.notifier).reset(),
             icon: const Icon(Icons.arrow_back, color: AppColors.charcoal),
           ),
         ),
-        const Icon(Icons.mark_email_read_outlined, color: AppColors.crimson, size: 32),
-        const SizedBox(height: 12),
+        const Icon(Icons.sms_outlined, color: AppColors.crimson, size: 28),
+        const SizedBox(height: 8),
         Text(
           'Enter the 6-digit code',
           textAlign: TextAlign.center,
-          style: Theme.of(context).textTheme.headlineMedium,
+          style: Theme.of(context).textTheme.titleLarge,
         ),
-        const SizedBox(height: 6),
+        const SizedBox(height: 4),
         Text(
           'Sent to ${authState.otpIdentifier}',
           textAlign: TextAlign.center,
           style: Theme.of(context).textTheme.bodySmall,
         ),
-        const SizedBox(height: 24),
+        const SizedBox(height: 16),
         _SampleUiOtpGrid(
           key: _otpGridKey,
           enabled: !isLoading,
-          onCompleted: (code) => ref.read(authNotifierProvider.notifier).verifyOtp(code),
+          onCompleted: (code) =>
+              ref.read(authNotifierProvider.notifier).verifyOtp(code),
         ),
         if (authState.status == AuthStatus.error) ...[
-          const SizedBox(height: 14),
+          const SizedBox(height: 10),
           Text(
             authState.errorMessage ?? 'Invalid OTP.',
             textAlign: TextAlign.center,
-            style: const TextStyle(color: AppColors.crimson, fontWeight: FontWeight.w600),
+            style: const TextStyle(
+              color: AppColors.crimson,
+              fontWeight: FontWeight.w600,
+            ),
           ),
         ],
-        const SizedBox(height: 20),
+        const SizedBox(height: 14),
         if (isLoading)
           const Center(
             child: SizedBox(
               height: 22,
               width: 22,
-              child: CircularProgressIndicator(strokeWidth: 2.4, color: AppColors.crimson),
+              child: CircularProgressIndicator(
+                strokeWidth: 2.4,
+                color: AppColors.crimson,
+              ),
             ),
           )
         else
@@ -230,7 +276,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 /// reusing the existing `OtpInputGrid` (which hardcodes the dark theme's
 /// `AppColors`). Same auto-advance/backspace-to-previous behavior.
 class _SampleUiOtpGrid extends StatefulWidget {
-  const _SampleUiOtpGrid({super.key, required this.onCompleted, this.enabled = true});
+  const _SampleUiOtpGrid({
+    super.key,
+    required this.onCompleted,
+    this.enabled = true,
+  });
 
   static const length = 6;
 
@@ -248,7 +298,10 @@ class _SampleUiOtpGridState extends State<_SampleUiOtpGrid> {
   @override
   void initState() {
     super.initState();
-    _controllers = List.generate(_SampleUiOtpGrid.length, (_) => TextEditingController());
+    _controllers = List.generate(
+      _SampleUiOtpGrid.length,
+      (_) => TextEditingController(),
+    );
     _focusNodes = List.generate(_SampleUiOtpGrid.length, (_) => FocusNode());
   }
 
@@ -283,10 +336,17 @@ class _SampleUiOtpGridState extends State<_SampleUiOtpGrid> {
 
   void _distributePaste(int index, String pasted) {
     final digits = pasted.replaceAll(RegExp(r'\D'), '');
-    for (var i = 0; i < digits.length && (index + i) < _SampleUiOtpGrid.length; i++) {
+    for (
+      var i = 0;
+      i < digits.length && (index + i) < _SampleUiOtpGrid.length;
+      i++
+    ) {
       _controllers[index + i].text = digits[i];
     }
-    final nextIndex = (index + digits.length).clamp(0, _SampleUiOtpGrid.length - 1);
+    final nextIndex = (index + digits.length).clamp(
+      0,
+      _SampleUiOtpGrid.length - 1,
+    );
     _focusNodes[nextIndex].requestFocus();
     _emitIfComplete();
   }
@@ -348,7 +408,10 @@ class _SampleUiOtpBoxState extends State<_SampleUiOtpBox> {
   // assertion in FocusNode._reparent). This node never requests focus
   // itself; backspace still reaches onKeyEvent via bubbling from the
   // focused TextField.
-  final _keyboardFocusNode = FocusNode(canRequestFocus: false, skipTraversal: true);
+  final _keyboardFocusNode = FocusNode(
+    canRequestFocus: false,
+    skipTraversal: true,
+  );
 
   @override
   void dispose() {
@@ -364,7 +427,8 @@ class _SampleUiOtpBoxState extends State<_SampleUiOtpBox> {
       child: KeyboardListener(
         focusNode: _keyboardFocusNode,
         onKeyEvent: (event) {
-          if (event is KeyDownEvent && event.logicalKey == LogicalKeyboardKey.backspace) {
+          if (event is KeyDownEvent &&
+              event.logicalKey == LogicalKeyboardKey.backspace) {
             widget.onBackspace();
           }
         },

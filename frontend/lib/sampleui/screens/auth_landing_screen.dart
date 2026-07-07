@@ -4,6 +4,7 @@ import '../widgets/auth_primary_button.dart';
 import '../widgets/auth_secondary_button.dart';
 import '../widgets/footer_legal_text.dart';
 import '../widgets/golden_record_corner.dart';
+import '../widgets/retro_doodle_background.dart';
 import '../widgets/section_divider.dart';
 import '../widgets/trust_strip.dart';
 import '../widgets/vintage_illustration_row.dart';
@@ -21,61 +22,66 @@ class AuthLandingScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Stack(
-        children: [
-          const GoldenRecordCorner(radius: 125.0),
-          SafeArea(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
-              child: Column(
-                children: [
-                  const VintageLogoBadge(),
-                  const SizedBox(height: 28),
-                  Text(
-                    'Unlock the magic of',
-                    textAlign: TextAlign.center,
-                    style: Theme.of(context).textTheme.headlineLarge,
-                  ),
-                  Text(
-                    'Retro Hindi Film Music',
-                    textAlign: TextAlign.center,
-                    style: Theme.of(context).textTheme.headlineMedium,
-                  ),
-                  const SizedBox(height: 14),
-                  const SampleUiSectionDivider(),
-                  const SizedBox(height: 14),
-                  Text(
-                    'Choose your journey below:',
-                    style: Theme.of(context).textTheme.bodyMedium,
-                  ),
-                  const SizedBox(height: 24),
-                  AuthPrimaryButton(
-                    label: 'Create Account',
-                    onPressed: () => Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (_) => const CreateAccountScreen(),
+      body: RetroDoodleBackground(
+        child: Stack(
+          children: [
+            const GoldenRecordCorner(radius: 125.0),
+            SafeArea(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 20,
+                ),
+                child: Column(
+                  children: [
+                    const VintageLogoBadge(),
+                    const SizedBox(height: 28),
+                    Text(
+                      'Unlock the magic of',
+                      textAlign: TextAlign.center,
+                      style: Theme.of(context).textTheme.headlineLarge,
+                    ),
+                    Text(
+                      'Retro Hindi Film Music',
+                      textAlign: TextAlign.center,
+                      style: Theme.of(context).textTheme.headlineMedium,
+                    ),
+                    const SizedBox(height: 14),
+                    const SampleUiSectionDivider(),
+                    const SizedBox(height: 14),
+                    Text(
+                      'Choose your journey below:',
+                      style: Theme.of(context).textTheme.bodyMedium,
+                    ),
+                    const SizedBox(height: 24),
+                    AuthPrimaryButton(
+                      label: 'Create Account',
+                      onPressed: () => Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => const CreateAccountScreen(),
+                        ),
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 14),
-                  AuthSecondaryButton(
-                    label: 'Login',
-                    onPressed: () => Navigator.of(context).push(
-                      MaterialPageRoute(builder: (_) => const LoginScreen()),
+                    const SizedBox(height: 14),
+                    AuthSecondaryButton(
+                      label: 'Login',
+                      onPressed: () => Navigator.of(context).push(
+                        MaterialPageRoute(builder: (_) => const LoginScreen()),
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 48),
-                  const VintageIllustrationRow(),
-                  const SizedBox(height: 24),
-                  const TrustStrip(),
-                  const SizedBox(height: 24),
-                  const FooterLegalText(),
-                  const SizedBox(height: 8),
-                ],
+                    const SizedBox(height: 48),
+                    const VintageIllustrationRow(),
+                    const SizedBox(height: 24),
+                    const TrustStrip(),
+                    const SizedBox(height: 24),
+                    const FooterLegalText(),
+                    const SizedBox(height: 8),
+                  ],
+                ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

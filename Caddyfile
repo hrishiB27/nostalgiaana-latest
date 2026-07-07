@@ -1,0 +1,11 @@
+{
+	email you@example.com
+}
+
+api.example.com {
+	reverse_proxy app:8080
+}
+
+storage.example.com {
+	reverse_proxy minio:9000
+}

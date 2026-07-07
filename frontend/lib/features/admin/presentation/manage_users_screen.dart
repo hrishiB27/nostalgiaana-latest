@@ -135,7 +135,7 @@ class _UserRow extends StatelessWidget {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    user.email ?? user.phone ?? '—',
+                    user.phone ?? '—',
                     style: Theme.of(context).textTheme.bodySmall,
                     overflow: TextOverflow.ellipsis,
                   ),

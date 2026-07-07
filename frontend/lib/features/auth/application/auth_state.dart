@@ -21,7 +21,7 @@ class AuthState {
   final AuthStatus status;
   final AuthenticatedUser? user;
 
-  /// Identifier (email or phone) the current OTP challenge was issued for.
+  /// Identifier (phone number) the current OTP challenge was issued for.
   /// Set by [AuthNotifier.login] and consumed by [AuthNotifier.verifyOtp].
   final String? otpIdentifier;
   final int? otpExpiresInSeconds;

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 import '../../core/config/theme_config.dart';
+import '../../core/widgets/nostalgiaana_brand_text.dart';
 
 /// The circular logo badge at the top of the auth landing screen: the
 /// real Nostalgiaana logo artwork framed by a crimson/teal ring, with the
@@ -32,7 +32,7 @@ class VintageLogoBadge extends StatelessWidget {
                 padding: EdgeInsets.all(diameter * 0.04),
                 child: ClipOval(
                   child: Image.asset(
-                    'assets/images/NostalgiaanaLogo.jpeg',
+                    'assets/images/newLogo_badge.png',
                     fit: BoxFit.cover,
                   ),
                 ),
@@ -41,36 +41,12 @@ class VintageLogoBadge extends StatelessWidget {
           ),
         ),
         SizedBox(height: diameter * 0.06),
-        Text.rich(
-          TextSpan(
-            children: [
-              TextSpan(
-                text: 'Nostalgi',
-                style: GoogleFonts.playfairDisplay(
-                  color: AppColors.crimson,
-                  fontWeight: FontWeight.w700,
-                  fontSize: diameter * 0.16,
-                ),
-              ),
-              TextSpan(
-                text: 'aa',
-                style: GoogleFonts.playfairDisplay(
-                  color: AppColors.crimson,
-                  fontStyle: FontStyle.italic,
-                  fontWeight: FontWeight.w700,
-                  fontSize: diameter * 0.16,
-                ),
-              ),
-              TextSpan(
-                text: 'na',
-                style: GoogleFonts.playfairDisplay(
-                  color: AppColors.teal,
-                  fontWeight: FontWeight.w700,
-                  fontSize: diameter * 0.16,
-                ),
-              ),
-            ],
+        NostalgiaanaBrandText(
+          style: TextStyle(
+            fontSize: diameter * 0.16,
+            fontWeight: FontWeight.w700,
           ),
+          textAlign: TextAlign.center,
         ),
         const SizedBox(height: 2),
         Text('Where Memories Matter', style: AppTheme.taglineStyle),

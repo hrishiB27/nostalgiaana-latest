@@ -53,8 +53,13 @@ class _ContentFormSheetState extends ConsumerState<ContentFormSheet> {
   }
 
   Future<void> _pickMedia() async {
+    // `withData: false` on both mobile and desktop: file_picker gives back
+    // a real filesystem `path` on either platform, so the upload can stream
+    // straight from disk (see `AdminContentApi._multipartFromPlatformFile`)
+    // instead of pulling the whole media file into memory as `bytes`.
     final result = await FilePicker.platform.pickFiles(
       type: _isShow ? FileType.video : FileType.audio,
+      withData: false,
     );
     if (result != null && result.files.isNotEmpty) {
       setState(() {
@@ -65,7 +70,10 @@ class _ContentFormSheetState extends ConsumerState<ContentFormSheet> {
   }
 
   Future<void> _pickThumbnail() async {
-    final result = await FilePicker.platform.pickFiles(type: FileType.image);
+    final result = await FilePicker.platform.pickFiles(
+      type: FileType.image,
+      withData: false,
+    );
     if (result != null && result.files.isNotEmpty) {
       setState(() => _thumbnail = result.files.single);
     }

@@ -1,0 +1,133 @@
+spring:
+  application:
+    name: nostalgiaana-audio
+
+  datasource:
+    url: ${DB_NAME:jdbc:postgresql://localhost:5432/nostalgiaana?options=-c%20timezone%3DUTC}
+    username: ${DB_USER:postgres}
+    password: ${DB_PASS:nostalgiaana123}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      data-source-properties:
+        # Enforced here (not just as a DB_NAME query param) so it applies
+        # regardless of what URL is typed into a hosting dashboard.
+        # Supabase's transaction-mode PgBouncer pooler doesn't support the
+        # pgjdbc driver's server-side prepared statement cache — without
+        # this, queries after the pool warms up fail with
+        # "prepared statement already exists".
+        prepareThreshold: 0
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+
+  flyway:
+    url: ${DB_NAME:jdbc:postgresql://localhost:5432/nostalgiaana?options=-c%20timezone%3DUTC}
+    user: ${DB_USER:postgres}
+    password: ${DB_PASS:nostalgiaana123}
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+    # Supabase's `public` schema isn't truly empty on a fresh project
+    # (default extensions/objects), so Flyway's baseline-on-migrate
+    # auto-triggers even against a brand-new database. Without this,
+    # it baselines at version 1 by default and silently skips V1 (which
+    # creates users/categories/content), breaking every later migration.
+    baseline-version: 0
+
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+      # Upstash (and most managed Redis) require TLS on the standard
+      # Redis-protocol port; local/plain Redis does not support it, so
+      # this must stay opt-in rather than always-on.
+      ssl:
+        enabled: ${REDIS_SSL:false}
+
+  servlet:
+    multipart:
+      max-file-size: 2GB
+      max-request-size: 2GB
+
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: ${MAIL_USERNAME:your-email@gmail.com}
+    password: ${MAIL_PASSWORD:your-app-password}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
+server:
+  port: 8080
+  tomcat:
+    max-swallow-size: 2GB
+  # Reverse-proxy hygiene for the production Caddy deployment: makes
+  # HttpServletRequest.getScheme()/isSecure()/getServerName() reflect the
+  # public https://api.<domain> the client actually used, not the internal
+  # http://app:8080 Caddy forwards to. Nothing in this codebase currently
+  # derives a URL from the inbound request, so this isn't functionally
+  # required today, but it's free insurance for anything that does later
+  # (redirects, secure-cookie flags, actuator self-links).
+  forward-headers-strategy: framework
+
+jwt:
+  secret: ${JWT_SECRET:nostalgiaana-super-secret-jwt-key-256-bits-long-enough}
+  expiration: 86400000
+  refresh-expiration: 604800000
+
+minio:
+  # Local dev talks to a local MinIO on these defaults; production sets
+  # STORAGE_* to point at Cloudflare R2 (S3-compatible) instead — no code
+  # changes needed, R2 is reached through the same MinioClient beans.
+  endpoint: ${STORAGE_ENDPOINT:http://localhost:9000}
+  # Host embedded in every presigned URL handed to clients — must be
+  # externally reachable, unlike `endpoint` above which is only used for
+  # the app's own internal MinIO calls. See MinioConfig/StorageService.
+  public-endpoint: ${STORAGE_URL:http://localhost:9000}
+  access-key: ${STORAGE_KEY:minioadmin}
+  secret-key: ${STORAGE_SECRET:minioadmin}
+  # Production R2 uses a single bucket (nostalgiaana-media) for all four
+  # content types, distinguished by key alone; local dev keeps the four
+  # separate MinIO buckets it always had.
+  bucket-audio: ${STORAGE_BUCKET:audio-content}
+  bucket-covers: ${STORAGE_BUCKET:cover-images}
+  bucket-video: ${STORAGE_BUCKET:video-content}
+  bucket-profile-pictures: ${STORAGE_BUCKET:profile-pictures}
+
+app:
+  frontend-url: ${APP_FRONTEND_URL:http://localhost:3000}
+
+cors:
+  # Only exercised by a browser client (Flutter web) — native
+  # Android/iOS/desktop builds never hit CORS. Comma-separated to allow
+  # multiple origins.
+  allowed-origins: ${CORS_ALLOWED_ORIGINS:*}
+
+management:
+  health:
+    mail:
+      enabled: false
+
+razorpay:
+  key-id: rzp_test_placeholder
+  key-secret: placeholder-secret
+  webhook-secret: placeholder-webhook-secret
+
+admin:
+  bootstrap:
+    enabled: ${ADMIN_BOOTSTRAP_ENABLED:true}
+    phone: "9987092587"
+    country: India
+    city: Chennai
+    password: ${ADMIN_BOOTSTRAP_PASSWORD:AdminPassword123}

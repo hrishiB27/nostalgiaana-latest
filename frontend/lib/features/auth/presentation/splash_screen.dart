@@ -164,7 +164,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
               ),
               child: FractionallySizedBox(
                 widthFactor: 0.62,
-                child: Image.asset('assets/images/NostalgiaanaLogo.jpeg'),
+                child: Image.asset('assets/images/nostalgiaana_logo_transparent.png'),
               ),
             ),
           ),

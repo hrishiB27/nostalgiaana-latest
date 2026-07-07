@@ -27,27 +27,26 @@ class _GoldenRecordPainter extends CustomPainter {
     final center = Offset(size.width / 2, size.height / 2);
     final radius = size.width / 2;
 
-    // Metallic gold sweep gradient to simulate realistic vinyl reflections
+    // Matte black sweep gradient to simulate realistic vinyl reflections
     final paint = Paint()
       ..shader = const SweepGradient(
         colors: [
-          Color(0xFFD4AF37), // Classic Metallic Gold
-          Color(0xFFF3E5AB), // Light Vanilla Gold Highlight
-          Color(0xFF996515), // Deep Amber/Dark Gold
-          Color(0xFFD4AF37),
-          Color(0xFFFFF09F), // Sparkling Gold Highlight
-          Color(0xFF996515),
-          Color(0xFFD4AF37),
+          Color(0xFF0D0D0D), // Near-black vinyl base
+          Color(0xFF2B2B2B), // Subtle charcoal highlight
+          Color(0xFF050505), // Deep black
+          Color(0xFF0D0D0D),
+          Color(0xFF333333), // Sheen highlight
+          Color(0xFF050505),
+          Color(0xFF0D0D0D),
         ],
         stops: [0.0, 0.15, 0.35, 0.5, 0.65, 0.85, 1.0],
       ).createShader(Rect.fromCircle(center: center, radius: radius));
 
-    // 1. Draw the primary golden vinyl base disc
+    // 1. Draw the primary black vinyl base disc
     canvas.drawCircle(center, radius, paint);
 
     final groovePaint = Paint()
-      ..color =
-          const Color(0x3A5C4033) // Subtle dark gold/brown groove tint
+      ..color = const Color(0x26FFFFFF) // Subtle light groove tint on black
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1.0;
 
@@ -68,12 +67,12 @@ class _GoldenRecordPainter extends CustomPainter {
       ..style = PaintingStyle.fill;
     canvas.drawCircle(center, radius * 0.28, labelPaint);
 
-    // 3. Draw a tiny gold highlight ring around the center spindle hole
-    final goldRingPaint = Paint()
-      ..color = const Color(0xFFFFF09F)
+    // 3. Draw a tiny highlight ring around the center spindle hole
+    final ringPaint = Paint()
+      ..color = const Color(0xFFE0E0E0)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1.5;
-    canvas.drawCircle(center, radius * 0.08, goldRingPaint);
+    canvas.drawCircle(center, radius * 0.08, ringPaint);
 
     // 4. Draw the actual dark center spindle hole
     final spindleHolePaint = Paint()

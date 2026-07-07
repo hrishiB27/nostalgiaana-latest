@@ -1,0 +1,46 @@
+services:
+  - type: web
+    name: nostalgiaana-audio
+    runtime: docker
+    dockerfilePath: audio/Dockerfile
+    dockerContext: audio
+    plan: free
+    envVars:
+      - key: DB_NAME
+        sync: false
+      - key: DB_USER
+        sync: false
+      - key: DB_PASS
+        sync: false
+      - key: REDIS_HOST
+        sync: false
+      - key: REDIS_PORT
+        value: 6379
+      - key: REDIS_PASSWORD
+        sync: false
+      - key: REDIS_SSL
+        value: "true"
+      - key: STORAGE_URL
+        sync: false
+      - key: STORAGE_ENDPOINT
+        sync: false
+      - key: STORAGE_KEY
+        sync: false
+      - key: STORAGE_SECRET
+        sync: false
+      - key: STORAGE_BUCKET
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: APP_FRONTEND_URL
+        sync: false
+      - key: CORS_ALLOWED_ORIGINS
+        value: "*"
+      - key: MAIL_USERNAME
+        sync: false
+      - key: MAIL_PASSWORD
+        sync: false
+      - key: ADMIN_BOOTSTRAP_ENABLED
+        value: "true"
+      - key: ADMIN_BOOTSTRAP_PASSWORD
+        sync: false

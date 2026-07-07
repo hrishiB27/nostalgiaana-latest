@@ -26,6 +26,9 @@ public class StorageService {
         this.presignMinioClient = presignMinioClient;
     }
 
+    @Value("${minio.endpoint}")
+    private String endpoint;
+
     @Value("${minio.bucket-audio}")
     private String audioBucket;
 
@@ -58,6 +61,8 @@ public class StorageService {
                 log.info("Created bucket: {}", bucketName);
             }
         } catch (Exception e) {
+            log.error("Failed to create/check bucket '{}' against endpoint '{}': {} - {}",
+                    bucketName, endpoint, e.getClass().getSimpleName(), e.getMessage(), e);
             throw new RuntimeException("Failed to create bucket: " + bucketName, e);
         }
     }

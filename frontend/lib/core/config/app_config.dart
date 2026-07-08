@@ -11,11 +11,14 @@ import 'package:flutter/foundation.dart';
 ///    URLs come back as complete presigned URLs in API response bodies
 ///    and are used as-is — so this single override is sufficient; there's
 ///    no separate storage-endpoint value to configure client-side.
-/// 2. Per-platform local-dev default, unchanged, when no override is
-///    supplied — the Android emulator can't reach the host's `localhost`
-///    directly and must use the special alias `10.0.2.2`; iOS simulators,
-///    web, and desktop share the host's network stack, so `localhost`
-///    works for them.
+/// 2. Release builds (`kReleaseMode`), when no override is supplied —
+///    resolve straight to the deployed production backend, so a release
+///    build never accidentally ships pointed at a dev machine's localhost.
+/// 3. Per-platform local-dev default, for debug/profile builds — the
+///    Android emulator can't reach the host's `localhost` directly and
+///    must use the special alias `10.0.2.2`; iOS simulators, web, and
+///    desktop share the host's network stack, so `localhost` works for
+///    them.
 class AppConfig {
   const AppConfig._();
 
@@ -23,9 +26,15 @@ class AppConfig {
     'API_BASE_URL',
   );
 
+  static const String _productionApiBaseUrl =
+      'https://nostalgiaana-audio.onrender.com/api';
+
   static String get apiBaseUrl {
     if (_apiBaseUrlOverride.isNotEmpty) {
       return _apiBaseUrlOverride;
+    }
+    if (kReleaseMode) {
+      return _productionApiBaseUrl;
     }
     if (kIsWeb) {
       return 'http://localhost:8080/api';

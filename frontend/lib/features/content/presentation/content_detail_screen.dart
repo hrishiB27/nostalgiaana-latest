@@ -11,10 +11,13 @@ import '../application/audio_player_notifier.dart';
 import '../data/listener_content_api.dart';
 import '../data/models/content_response_model.dart';
 import '../data/models/content_type.dart';
+import 'video_player_screen.dart';
+import 'widgets/now_playing_bar.dart';
 
-/// Detail view for either a Show or an Audio. "Play Now" only actually
-/// streams for Audios — video playback isn't wired up yet, so a Show just
-/// gets an honest "coming soon" instead of silently doing nothing.
+/// Detail view for either a Show or an Audio. Audio plays via the
+/// persistent Now Playing bar; Shows push a dedicated full-screen
+/// [VideoPlayerScreen] instead, since video isn't meant to keep playing
+/// in the background while browsing other screens.
 class ContentDetailScreen extends ConsumerStatefulWidget {
   const ContentDetailScreen({super.key, required this.content});
 
@@ -34,12 +37,6 @@ class _ContentDetailScreenState extends ConsumerState<ContentDetailScreen> {
 
   Future<void> _playNow() async {
     final content = widget.content;
-    if (content.contentType == ContentType.show) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Video playback is coming soon.')),
-      );
-      return;
-    }
     if (_isPremiumGated) {
       PremiumUpgradeSheet.show(context);
       return;
@@ -48,11 +45,25 @@ class _ContentDetailScreenState extends ConsumerState<ContentDetailScreen> {
     setState(() => _isLoadingStream = true);
     try {
       final stream = await ref.read(listenerContentApiProvider).getStreamUrl(content.id);
-      await ref.read(audioPlayerProvider.notifier).play(
-            stream.url,
-            contentId: content.id,
-            title: content.title,
+      if (content.contentType == ContentType.show) {
+        if (mounted) {
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (_) => VideoPlayerScreen(
+                streamUrl: stream.url,
+                contentId: content.id,
+                title: content.title,
+              ),
+            ),
           );
+        }
+      } else {
+        await ref.read(audioPlayerProvider.notifier).play(
+              stream.url,
+              contentId: content.id,
+              title: content.title,
+            );
+      }
     } catch (error) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(messageFor(error))));
@@ -70,6 +81,7 @@ class _ContentDetailScreenState extends ConsumerState<ContentDetailScreen> {
 
     return Scaffold(
       appBar: AppBar(title: Text(content.title)),
+      bottomNavigationBar: const NowPlayingBar(),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
         child: Column(

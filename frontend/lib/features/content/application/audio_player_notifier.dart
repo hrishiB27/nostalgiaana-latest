@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:just_audio/just_audio.dart';
 
+import 'video_player_notifier.dart';
+
 /// `title`/`contentId` are null when nothing has ever been loaded — that's
 /// the only time the Now Playing bar should stay hidden.
 class AudioPlayerState {
@@ -77,6 +79,9 @@ class AudioPlayerNotifier extends Notifier<AudioPlayerState> {
   }
 
   Future<void> play(String url, {required String contentId, required String title}) async {
+    if (ref.read(videoPlayerProvider).isPlaying) {
+      await ref.read(videoPlayerProvider.notifier).pause();
+    }
     state = AudioPlayerState(contentId: contentId, title: title, isBuffering: true);
     await _player.setUrl(url);
     await _player.play();

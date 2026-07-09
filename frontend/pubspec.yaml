@@ -41,6 +41,9 @@ dependencies:
   file_picker: ^8.0.0
   just_audio: ^0.10.0
   just_audio_windows: ^0.2.2
+  media_kit: ^1.1.11
+  media_kit_video: ^1.2.5
+  media_kit_libs_video: ^1.0.5
   razorpay_flutter: ^1.4.0
   google_fonts: ^6.2.1
 

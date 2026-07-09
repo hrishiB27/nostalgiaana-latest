@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:media_kit/media_kit.dart';
 
 import 'core/config/theme_config.dart';
 import 'features/auth/presentation/splash_screen.dart';
 
 void main() {
+  MediaKit.ensureInitialized();
   runApp(const ProviderScope(child: NostalgiaanaApp()));
 }
 

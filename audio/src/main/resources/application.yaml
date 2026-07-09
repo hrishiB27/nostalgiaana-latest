@@ -79,10 +79,15 @@ minio:
   # STORAGE_* to point at Cloudflare R2 (S3-compatible) instead — no code
   # changes needed, R2 is reached through the same MinioClient beans.
   endpoint: ${STORAGE_ENDPOINT:http://localhost:9000}
-  # Host embedded in every presigned URL handed to clients — must be
-  # externally reachable, unlike `endpoint` above which is only used for
-  # the app's own internal MinIO calls. See MinioConfig/StorageService.
-  public-endpoint: ${STORAGE_URL:http://localhost:9000}
+  # Host embedded in every presigned URL handed to clients. For self-hosted
+  # MinIO this would need to differ from `endpoint` above (internal Docker
+  # hostname vs. externally-reachable domain) — but R2's S3 API endpoint is
+  # already public, so it serves both roles. Deliberately NOT R2's separate
+  # "public dev URL" feature (STORAGE_URL): that host is already scoped to
+  # one bucket via its subdomain, so MinIO's path-style presigned URLs
+  # (which embed the bucket name in the path) 404 against it — verified by
+  # direct reproduction.
+  public-endpoint: ${STORAGE_ENDPOINT:http://localhost:9000}
   access-key: ${STORAGE_KEY:minioadmin}
   secret-key: ${STORAGE_SECRET:minioadmin}
   # Production R2 uses a single bucket (nostalgiaana-media) for all four

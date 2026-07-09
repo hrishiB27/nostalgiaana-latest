@@ -20,8 +20,6 @@ services:
         sync: false
       - key: REDIS_SSL
         value: "true"
-      - key: STORAGE_URL
-        sync: false
       - key: STORAGE_ENDPOINT
         sync: false
       - key: STORAGE_KEY

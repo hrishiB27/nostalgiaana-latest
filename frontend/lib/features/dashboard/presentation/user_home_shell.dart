@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/config/theme_config.dart';
+import '../../../core/layout/adaptive_content_wrapper.dart';
 import '../../../core/network/api_error.dart';
 import '../../../core/widgets/nostalgiaana_brand_text.dart';
 import '../../../core/widgets/tier_badge.dart';
@@ -151,15 +152,17 @@ class _UserHomeScreenShellState extends ConsumerState<UserHomeScreenShell> {
       ),
       bottomNavigationBar: const NowPlayingBar(),
       body: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const SizedBox(height: 12),
-            _buildCategoryChips(),
-            _buildShelf('Shows', showsAsync),
-            _buildShelf('Audios', audiosAsync),
-            const SizedBox(height: 24),
-          ],
+        child: AdaptiveContentWrapper(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const SizedBox(height: 12),
+              _buildCategoryChips(),
+              _buildShelf('Shows', showsAsync),
+              _buildShelf('Audios', audiosAsync),
+              const SizedBox(height: 24),
+            ],
+          ),
         ),
       ),
     );

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/config/theme_config.dart';
+import '../../../core/layout/adaptive_content_wrapper.dart';
+import '../../../core/layout/adaptive_list_grid.dart';
 import '../../content/data/models/content_type.dart';
 import '../application/admin_content_state.dart';
 import '../application/admin_shows_notifier.dart';
@@ -11,7 +13,9 @@ import 'widgets/content_form_sheet.dart';
 import 'widgets/content_list_tile.dart';
 
 class ManageShowsScreen extends ConsumerStatefulWidget {
-  const ManageShowsScreen({super.key});
+  const ManageShowsScreen({super.key, this.showAppBar = true});
+
+  final bool showAppBar;
 
   @override
   ConsumerState<ManageShowsScreen> createState() => _ManageShowsScreenState();
@@ -77,10 +81,9 @@ class _ManageShowsScreenState extends ConsumerState<ManageShowsScreen> {
       return const Center(child: CircularProgressIndicator(color: AppColors.teal));
     }
 
-    return ListView.separated(
+    return AdaptiveListGrid(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 96),
       itemCount: state.items.length,
-      separatorBuilder: (_, _) => const SizedBox(height: 12),
       itemBuilder: (context, index) {
         final item = state.items[index];
         return ContentListTile(item: item, onDelete: () => _confirmDelete(item));
@@ -98,13 +101,13 @@ class _ManageShowsScreenState extends ConsumerState<ManageShowsScreen> {
     final state = ref.watch(adminShowsProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Manage Shows')),
+      appBar: widget.showAppBar ? AppBar(title: const Text('Manage Shows')) : null,
       floatingActionButton: FloatingActionButton(
         onPressed: _openAddForm,
         backgroundColor: AppColors.crimson,
         child: const Icon(Icons.add),
       ),
-      body: _buildBody(state),
+      body: AdaptiveContentWrapper(child: _buildBody(state)),
     );
   }
 }

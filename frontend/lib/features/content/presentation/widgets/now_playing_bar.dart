@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/config/theme_config.dart';
+import '../../../../core/layout/adaptive_content_wrapper.dart';
 import '../../application/audio_player_notifier.dart';
 
 /// Sticky mini-player anchored to the bottom of the dashboard shell.
@@ -41,45 +42,47 @@ class NowPlayingBar extends ConsumerWidget {
             ),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-              child: Row(
-                children: [
-                  const Icon(Icons.graphic_eq, color: AppColors.teal),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          state.title ?? '',
-                          style: const TextStyle(color: AppColors.charcoal, fontWeight: FontWeight.w600),
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        Text(
-                          '${_format(state.position)} / ${_format(duration)}',
-                          style: TextStyle(color: AppColors.charcoal.withValues(alpha: 0.55), fontSize: 11),
-                        ),
-                      ],
-                    ),
-                  ),
-                  if (state.isBuffering)
-                    const Padding(
-                      padding: EdgeInsets.all(4),
-                      child: SizedBox(
-                        height: 22,
-                        width: 22,
-                        child: CircularProgressIndicator(strokeWidth: 2.2, color: AppColors.teal),
-                      ),
-                    )
-                  else
-                    IconButton(
-                      onPressed: () => ref.read(audioPlayerProvider.notifier).togglePlayPause(),
-                      icon: Icon(
-                        state.isPlaying ? Icons.pause_circle_filled : Icons.play_circle_filled,
-                        color: AppColors.charcoal,
-                        size: 32,
+              child: AdaptiveContentWrapper(
+                child: Row(
+                  children: [
+                    const Icon(Icons.graphic_eq, color: AppColors.teal),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            state.title ?? '',
+                            style: const TextStyle(color: AppColors.charcoal, fontWeight: FontWeight.w600),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          Text(
+                            '${_format(state.position)} / ${_format(duration)}',
+                            style: TextStyle(color: AppColors.charcoal.withValues(alpha: 0.55), fontSize: 11),
+                          ),
+                        ],
                       ),
                     ),
-                ],
+                    if (state.isBuffering)
+                      const Padding(
+                        padding: EdgeInsets.all(4),
+                        child: SizedBox(
+                          height: 22,
+                          width: 22,
+                          child: CircularProgressIndicator(strokeWidth: 2.2, color: AppColors.teal),
+                        ),
+                      )
+                    else
+                      IconButton(
+                        onPressed: () => ref.read(audioPlayerProvider.notifier).togglePlayPause(),
+                        icon: Icon(
+                          state.isPlaying ? Icons.pause_circle_filled : Icons.play_circle_filled,
+                          color: AppColors.charcoal,
+                          size: 32,
+                        ),
+                      ),
+                  ],
+                ),
               ),
             ),
           ],

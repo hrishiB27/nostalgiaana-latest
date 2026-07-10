@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/config/theme_config.dart';
+import '../../../core/layout/app_breakpoints.dart';
 import '../../../sampleui/screens/auth_landing_screen.dart';
 import '../../admin/presentation/manage_audios_screen.dart';
 import '../../admin/presentation/manage_shows_screen.dart';
@@ -13,8 +14,15 @@ import '../../auth/application/auth_notifier.dart';
 /// to `/api/admin/shows`/`/api/admin/audios` is a follow-up once the admin
 /// content upload flow is built. "Manage Users" is fully wired to
 /// `/api/admin/users`.
-class AdminDashboardShell extends ConsumerWidget {
+class AdminDashboardShell extends ConsumerStatefulWidget {
   const AdminDashboardShell({super.key});
+
+  @override
+  ConsumerState<AdminDashboardShell> createState() => _AdminDashboardShellState();
+}
+
+class _AdminDashboardShellState extends ConsumerState<AdminDashboardShell> {
+  int _selectedIndex = 0;
 
   static const _panels = [
     (
@@ -37,83 +45,132 @@ class AdminDashboardShell extends ConsumerWidget {
     ),
   ];
 
-  static const _destinations = [
+  /// Pushed full-screen on mobile/narrow width via [_openPanel] — each
+  /// screen keeps its own AppBar since it's the only content on screen.
+  static const _pushDestinations = [
     ManageShowsScreen(),
     ManageAudiosScreen(),
     ManageUsersScreen(),
   ];
 
+  /// Embedded next to the [NavigationRail] on desktop width — AppBar
+  /// omitted since `_buildDesktopBody`'s shared Scaffold AppBar covers it.
+  static const _railDestinations = [
+    ManageShowsScreen(showAppBar: false),
+    ManageAudiosScreen(showAppBar: false),
+    ManageUsersScreen(showAppBar: false),
+  ];
+
   void _openPanel(BuildContext context, int index) {
     Navigator.of(context).push(
-      MaterialPageRoute(builder: (_) => _destinations[index]),
+      MaterialPageRoute(builder: (_) => _pushDestinations[index]),
     );
   }
 
-  Future<void> _logout(BuildContext context, WidgetRef ref) async {
+  Future<void> _logout() async {
     await ref.read(authNotifierProvider.notifier).logout();
-    if (!context.mounted) return;
+    if (!mounted) return;
     Navigator.of(context).pushAndRemoveUntil(
       MaterialPageRoute(builder: (_) => const AuthLandingScreen()),
       (route) => false,
     );
   }
 
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Admin Console'),
-        actions: [
-          IconButton(
-            onPressed: () => _logout(context, ref),
-            icon: const Icon(Icons.logout, color: AppColors.charcoal),
-          ),
-        ],
-      ),
-      body: ListView.separated(
-        padding: const EdgeInsets.all(20),
-        itemCount: _panels.length,
-        separatorBuilder: (_, _) => const SizedBox(height: 16),
-        itemBuilder: (context, index) {
-          final panel = _panels[index];
-          return InkWell(
-            borderRadius: BorderRadius.circular(20),
-            onTap: () => _openPanel(context, index),
-            child: Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(20),
-                color: AppColors.panelCream,
-                border: Border.all(color: panel.accent.withValues(alpha: 0.35)),
-              ),
-              child: Row(
-                children: [
-                  CircleAvatar(
-                    radius: 26,
-                    backgroundColor: panel.accent.withValues(alpha: 0.18),
-                    child: Icon(panel.icon, color: panel.accent),
-                  ),
-                  const SizedBox(width: 18),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(panel.title, style: Theme.of(context).textTheme.titleLarge),
-                        const SizedBox(height: 4),
-                        Text(
-                          panel.subtitle,
-                          style: TextStyle(color: AppColors.charcoal.withValues(alpha: 0.55)),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Icon(Icons.chevron_right, color: AppColors.charcoal.withValues(alpha: 0.4)),
-                ],
-              ),
+  Widget _buildMobileBody(BuildContext context) {
+    return ListView.separated(
+      padding: const EdgeInsets.all(20),
+      itemCount: _panels.length,
+      separatorBuilder: (_, _) => const SizedBox(height: 16),
+      itemBuilder: (context, index) {
+        final panel = _panels[index];
+        return InkWell(
+          borderRadius: BorderRadius.circular(20),
+          onTap: () => _openPanel(context, index),
+          child: Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(20),
+              color: AppColors.panelCream,
+              border: Border.all(color: panel.accent.withValues(alpha: 0.35)),
             ),
-          );
-        },
-      ),
+            child: Row(
+              children: [
+                CircleAvatar(
+                  radius: 26,
+                  backgroundColor: panel.accent.withValues(alpha: 0.18),
+                  child: Icon(panel.icon, color: panel.accent),
+                ),
+                const SizedBox(width: 18),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(panel.title, style: Theme.of(context).textTheme.titleLarge),
+                      const SizedBox(height: 4),
+                      Text(
+                        panel.subtitle,
+                        style: TextStyle(color: AppColors.charcoal.withValues(alpha: 0.55)),
+                      ),
+                    ],
+                  ),
+                ),
+                Icon(Icons.chevron_right, color: AppColors.charcoal.withValues(alpha: 0.4)),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildDesktopBody() {
+    return Row(
+      children: [
+        NavigationRail(
+          selectedIndex: _selectedIndex,
+          onDestinationSelected: (index) => setState(() => _selectedIndex = index),
+          labelType: NavigationRailLabelType.all,
+          destinations: const [
+            NavigationRailDestination(
+              icon: Icon(Icons.podcasts),
+              label: Text('Manage Shows'),
+            ),
+            NavigationRailDestination(
+              icon: Icon(Icons.audiotrack),
+              label: Text('Manage Audios'),
+            ),
+            NavigationRailDestination(
+              icon: Icon(Icons.people_alt),
+              label: Text('Manage Users'),
+            ),
+          ],
+        ),
+        const VerticalDivider(width: 1),
+        Expanded(
+          child: IndexedStack(index: _selectedIndex, children: _railDestinations),
+        ),
+      ],
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final desktop = AppBreakpoints.isDesktopWidth(constraints.maxWidth);
+        return Scaffold(
+          appBar: AppBar(
+            title: const Text('Admin Console'),
+            actions: [
+              IconButton(
+                onPressed: _logout,
+                icon: const Icon(Icons.logout, color: AppColors.charcoal),
+              ),
+            ],
+          ),
+          body: desktop ? _buildDesktopBody() : _buildMobileBody(context),
+        );
+      },
     );
   }
 }

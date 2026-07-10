@@ -2,13 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/config/theme_config.dart';
+import '../../../core/layout/adaptive_content_wrapper.dart';
+import '../../../core/layout/adaptive_list_grid.dart';
 import '../../../core/widgets/tier_badge.dart';
 import '../application/admin_users_notifier.dart';
 import '../data/models/admin_user_response_model.dart';
 import 'widgets/admin_error_view.dart';
 
 class ManageUsersScreen extends ConsumerStatefulWidget {
-  const ManageUsersScreen({super.key});
+  const ManageUsersScreen({super.key, this.showAppBar = true});
+
+  final bool showAppBar;
 
   @override
   ConsumerState<ManageUsersScreen> createState() => _ManageUsersScreenState();
@@ -69,13 +73,12 @@ class _ManageUsersScreenState extends ConsumerState<ManageUsersScreen> {
       );
     }
 
-    return ListView.separated(
+    return AdaptiveListGrid(
       // Bottom clearance matches manage_shows/audios_screen's FAB-safe
       // padding, so the last row doesn't sit flush against a bottom
       // gesture bar/home indicator on devices without a FAB here.
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 96),
       itemCount: state.users.length,
-      separatorBuilder: (_, _) => const SizedBox(height: 12),
       itemBuilder: (context, index) {
         final user = state.users[index];
         return _UserRow(user: user, onSuspend: () => _confirmSuspend(user));
@@ -87,8 +90,8 @@ class _ManageUsersScreenState extends ConsumerState<ManageUsersScreen> {
   Widget build(BuildContext context) {
     final state = ref.watch(adminUsersProvider);
     return Scaffold(
-      appBar: AppBar(title: const Text('Manage Users')),
-      body: _buildBody(state),
+      appBar: widget.showAppBar ? AppBar(title: const Text('Manage Users')) : null,
+      body: AdaptiveContentWrapper(child: _buildBody(state)),
     );
   }
 }

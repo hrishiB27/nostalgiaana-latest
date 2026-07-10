@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/config/theme_config.dart';
+import '../../../core/layout/adaptive_content_wrapper.dart';
 import '../../../core/network/api_error.dart';
 import '../../../core/widgets/tier_badge.dart';
 import '../../auth/application/auth_notifier.dart';
@@ -87,99 +88,101 @@ class _ContentDetailScreenState extends ConsumerState<ContentDetailScreen> {
       bottomNavigationBar: const NowPlayingBar(),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(20),
-              child: AspectRatio(
-                aspectRatio: 16 / 9,
-                child: content.coverUrl != null
-                    ? Image.network(content.coverUrl!, fit: BoxFit.cover)
-                    : DecoratedBox(
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                            colors: [
-                              AppColors.teal.withValues(alpha: 0.35),
-                              AppColors.crimson.withValues(alpha: 0.25),
-                            ],
+        child: AdaptiveContentWrapper(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              ClipRRect(
+                borderRadius: BorderRadius.circular(20),
+                child: AspectRatio(
+                  aspectRatio: 16 / 9,
+                  child: content.coverUrl != null
+                      ? Image.network(content.coverUrl!, fit: BoxFit.cover)
+                      : DecoratedBox(
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                              colors: [
+                                AppColors.teal.withValues(alpha: 0.35),
+                                AppColors.crimson.withValues(alpha: 0.25),
+                              ],
+                            ),
+                          ),
+                          child: Center(
+                            child: Icon(
+                              isAudio ? Icons.graphic_eq : Icons.movie_outlined,
+                              color: AppColors.charcoal,
+                              size: 48,
+                            ),
                           ),
                         ),
-                        child: Center(
-                          child: Icon(
-                            isAudio ? Icons.graphic_eq : Icons.movie_outlined,
-                            color: AppColors.charcoal,
-                            size: 48,
-                          ),
-                        ),
-                      ),
+                ),
               ),
-            ),
-            const SizedBox(height: 20),
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: Text(
-                    content.title,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: Theme.of(context).textTheme.headlineMedium,
+              const SizedBox(height: 20),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: Text(
+                      content.title,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context).textTheme.headlineMedium,
+                    ),
+                  ),
+                  if (content.isPremium) ...[
+                    const SizedBox(width: 8),
+                    const TierBadge(label: 'PREMIUM', color: AppColors.gold),
+                  ],
+                ],
+              ),
+              if (content.speaker != null) ...[
+                const SizedBox(height: 6),
+                Text(
+                  content.speaker!,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+              ],
+              if (content.categoryName != null) ...[
+                const SizedBox(height: 4),
+                Text(
+                  content.categoryName!,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: accent,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 12,
                   ),
                 ),
-                if (content.isPremium) ...[
-                  const SizedBox(width: 8),
-                  const TierBadge(label: 'PREMIUM', color: AppColors.gold),
-                ],
               ],
-            ),
-            if (content.speaker != null) ...[
-              const SizedBox(height: 6),
-              Text(
-                content.speaker!,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: Theme.of(context).textTheme.bodySmall,
-              ),
-            ],
-            if (content.categoryName != null) ...[
-              const SizedBox(height: 4),
-              Text(
-                content.categoryName!,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  color: accent,
-                  fontWeight: FontWeight.w600,
-                  fontSize: 12,
+              const SizedBox(height: 16),
+              if (content.description != null && content.description!.isNotEmpty)
+                Text(
+                  content.description!,
+                  style: Theme.of(context).textTheme.bodyMedium,
                 ),
+              const SizedBox(height: 28),
+              ElevatedButton.icon(
+                onPressed: _isLoadingStream ? null : _playNow,
+                style: ElevatedButton.styleFrom(backgroundColor: accent),
+                icon: _isLoadingStream
+                    ? const SizedBox(
+                        height: 18,
+                        width: 18,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2.2,
+                          color: Colors.white,
+                        ),
+                      )
+                    : const Icon(Icons.play_arrow),
+                label: const Text('Play Now'),
               ),
             ],
-            const SizedBox(height: 16),
-            if (content.description != null && content.description!.isNotEmpty)
-              Text(
-                content.description!,
-                style: Theme.of(context).textTheme.bodyMedium,
-              ),
-            const SizedBox(height: 28),
-            ElevatedButton.icon(
-              onPressed: _isLoadingStream ? null : _playNow,
-              style: ElevatedButton.styleFrom(backgroundColor: accent),
-              icon: _isLoadingStream
-                  ? const SizedBox(
-                      height: 18,
-                      width: 18,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2.2,
-                        color: Colors.white,
-                      ),
-                    )
-                  : const Icon(Icons.play_arrow),
-              label: const Text('Play Now'),
-            ),
-          ],
+          ),
         ),
       ),
     );

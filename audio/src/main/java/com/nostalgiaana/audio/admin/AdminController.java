@@ -96,4 +96,10 @@ public class AdminController {
         adminService.banUser(id);
         return ResponseEntity.noContent().build();
     }
+
+    @PatchMapping("/users/{id}/approve")
+    public ResponseEntity<Void> approveUser(@PathVariable UUID id) {
+        adminService.approveUser(id);
+        return ResponseEntity.noContent().build();
+    }
 }

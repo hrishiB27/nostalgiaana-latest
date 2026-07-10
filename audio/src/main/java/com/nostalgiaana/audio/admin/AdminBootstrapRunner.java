@@ -50,6 +50,7 @@ public class AdminBootstrapRunner implements ApplicationRunner {
 
         user.setRole(UserRole.ADMIN);
         user.setIsActive(true);
+        user.setApproved(true);
         user.setPasswordHash(passwordEncoder.encode(password));
 
         userService.save(user);

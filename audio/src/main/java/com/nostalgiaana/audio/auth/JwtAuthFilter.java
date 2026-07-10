@@ -54,7 +54,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
         User user = userService.findById(userId).orElse(null);
 
-        if (user != null && user.getIsActive()) {
+        if (user != null && user.getIsActive() && user.getApproved()) {
             var authToken = new UsernamePasswordAuthenticationToken(
                     user,
                     null,

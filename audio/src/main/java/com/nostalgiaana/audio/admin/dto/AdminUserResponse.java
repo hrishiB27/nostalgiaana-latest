@@ -24,5 +24,6 @@ public class AdminUserResponse {
     private UserRole role;
     private String membershipTier;
     private Boolean isActive;
+    private Boolean approved;
     private LocalDateTime createdAt;
 }

@@ -23,6 +23,15 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(error);
     }
 
+    @ExceptionHandler(UserNotApprovedException.class)
+    public ResponseEntity<Map<String, Object>> handleUserNotApproved(UserNotApprovedException ex) {
+        Map<String, Object> error = new HashMap<>();
+        error.put("error", "You have not been approved yet");
+        error.put("status", HttpStatus.FORBIDDEN.value());
+        error.put("timestamp", LocalDateTime.now().toString());
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(error);
+    }
+
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<Map<String, Object>> handleRuntimeException(RuntimeException ex) {
         Map<String, Object> error = new HashMap<>();

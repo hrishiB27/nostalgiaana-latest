@@ -5,6 +5,7 @@ import com.nostalgiaana.audio.auth.dto.LoginRequest;
 import com.nostalgiaana.audio.auth.dto.OtpChallengeResponse;
 import com.nostalgiaana.audio.auth.dto.SignupRequest;
 import com.nostalgiaana.audio.auth.dto.VerifyOtpRequest;
+import com.nostalgiaana.audio.exception.UserNotApprovedException;
 import com.nostalgiaana.audio.storage.StorageService;
 import com.nostalgiaana.audio.user.User;
 import com.nostalgiaana.audio.user.UserRole;
@@ -106,6 +107,10 @@ public class AuthService {
 
         if (!user.getIsActive()) {
             throw new RuntimeException("Account is suspended");
+        }
+
+        if (!user.getApproved()) {
+            throw new UserNotApprovedException("You have not been approved yet");
         }
 
         String otp = generateOtp();

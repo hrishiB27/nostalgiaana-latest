@@ -77,6 +77,13 @@ public class AdminService {
         userService.save(user);
     }
 
+    public void approveUser(UUID id) {
+        User user = userService.findById(id)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        user.setApproved(true);
+        userService.save(user);
+    }
+
     private AdminUserResponse toAdminUserResponse(User user) {
         return AdminUserResponse.builder()
                 .id(user.getId())
@@ -88,6 +95,7 @@ public class AdminService {
                 .role(user.getRole())
                 .membershipTier(user.getRole() == UserRole.PREMIUM ? "PREMIUM" : "STANDARD")
                 .isActive(user.getIsActive())
+                .approved(user.getApproved())
                 .createdAt(user.getCreatedAt())
                 .build();
     }

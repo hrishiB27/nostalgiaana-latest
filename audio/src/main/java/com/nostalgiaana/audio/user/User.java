@@ -40,6 +40,9 @@ private UserRole role = UserRole.LISTENER;
     private Boolean isActive = true;
 
     @Builder.Default
+    private Boolean approved = false;
+
+    @Builder.Default
     private LocalDateTime createdAt = LocalDateTime.now();
 
     @Builder.Default

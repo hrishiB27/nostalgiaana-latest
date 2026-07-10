@@ -1,7 +1,11 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/network/api_error.dart';
+import '../../../core/network/dio_client.dart';
 import '../../../core/storage/secure_storage_service.dart';
+import '../../admin/application/admin_audios_notifier.dart';
+import '../../admin/application/admin_shows_notifier.dart';
+import '../../admin/application/admin_users_notifier.dart';
 import '../../user/data/user_api.dart';
 import '../data/auth_api.dart';
 import '../data/models/signup_request.dart';
@@ -82,6 +86,18 @@ class AuthNotifier extends Notifier<AuthState> {
 
   Future<void> logout() async {
     await ref.read(secureStorageProvider).clear();
+    // dioProvider (and every *ApiProvider that watches it) and the admin
+    // content providers are app-wide singletons that outlive any one login
+    // session. Without invalidating them here, switching accounts in the
+    // same running app can leave a stale Dio client or cached admin
+    // shows/audios/users state (e.g. a previous 403) around from the prior
+    // account — invisible after a fresh app start (new providers every
+    // time) but reproducible when logging out and back in without
+    // restarting.
+    ref.invalidate(dioProvider);
+    ref.invalidate(adminShowsProvider);
+    ref.invalidate(adminAudiosProvider);
+    ref.invalidate(adminUsersProvider);
     state = const AuthState(status: AuthStatus.unauthenticated);
   }
 

@@ -18,9 +18,10 @@ const _fieldDecoration = InputDecoration(isDense: true);
 /// straight to `AuthStatus.authenticated` on success, so this screen has
 /// only one phase, unlike [LoginScreen].
 ///
-/// Deliberately non-scrolling: fields are paired into rows and tightly
-/// spaced (`isDense` decorations, small gaps) so the whole form fits one
-/// screen without the user needing to scroll up or down.
+/// Fields are paired into rows and tightly spaced (`isDense` decorations,
+/// small gaps) so the whole form fits one screen without scrolling on most
+/// devices — scrolling itself stays enabled as a fallback for short screens
+/// or when the keyboard is open, rather than risking a hard overflow.
 class CreateAccountScreen extends ConsumerStatefulWidget {
   const CreateAccountScreen({super.key});
 
@@ -90,8 +91,11 @@ class _CreateAccountScreenState extends ConsumerState<CreateAccountScreen> {
       body: RetroDoodleBackground(
         child: SafeArea(
           child: SingleChildScrollView(
-            physics: const NeverScrollableScrollPhysics(),
-            padding: const EdgeInsets.all(24),
+            // `extendBodyBehindAppBar` + a transparent AppBar means SafeArea
+            // only accounts for the status bar, not the AppBar's own height
+            // — without this extra top padding, content starts underneath
+            // the "Create Account" title instead of below it.
+            padding: EdgeInsets.fromLTRB(24, 24 + kToolbarHeight, 24, 24),
             child: Form(
               key: _formKey,
               child: Column(

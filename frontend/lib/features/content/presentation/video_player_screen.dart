@@ -27,20 +27,24 @@ class VideoPlayerScreen extends ConsumerStatefulWidget {
 
 class _VideoPlayerScreenState extends ConsumerState<VideoPlayerScreen> {
   bool get _isMobile =>
-      defaultTargetPlatform == TargetPlatform.android || defaultTargetPlatform == TargetPlatform.iOS;
+      defaultTargetPlatform == TargetPlatform.android ||
+      defaultTargetPlatform == TargetPlatform.iOS;
 
   @override
   void initState() {
     super.initState();
-    ref.read(videoPlayerProvider.notifier).play(
+    ref
+        .read(videoPlayerProvider.notifier)
+        .play(
           widget.streamUrl,
           contentId: widget.contentId,
           title: widget.title,
         );
     if (_isMobile) {
-      SystemChrome.setPreferredOrientations(
-        [DeviceOrientation.landscapeLeft, DeviceOrientation.landscapeRight],
-      );
+      SystemChrome.setPreferredOrientations([
+        DeviceOrientation.landscapeLeft,
+        DeviceOrientation.landscapeRight,
+      ]);
       SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
     }
   }
@@ -64,11 +68,9 @@ class _VideoPlayerScreenState extends ConsumerState<VideoPlayerScreen> {
       appBar: AppBar(
         backgroundColor: Colors.black,
         foregroundColor: Colors.white,
-        title: Text(widget.title),
+        title: Text(widget.title, maxLines: 1, overflow: TextOverflow.ellipsis),
       ),
-      body: Center(
-        child: Video(controller: controller),
-      ),
+      body: Center(child: Video(controller: controller)),
     );
   }
 }

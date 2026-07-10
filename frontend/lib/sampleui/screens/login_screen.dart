@@ -106,8 +106,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       body: RetroDoodleBackground(
         child: SafeArea(
           child: SingleChildScrollView(
-            physics: const NeverScrollableScrollPhysics(),
-            padding: const EdgeInsets.all(24),
+            // `extendBodyBehindAppBar` + a transparent AppBar means SafeArea
+            // only accounts for the status bar, not the AppBar's own height
+            // — without this extra top padding, content starts underneath
+            // the "Login" title instead of below it.
+            padding: EdgeInsets.fromLTRB(24, 24 + kToolbarHeight, 24, 24),
             child: AnimatedSwitcher(
               duration: const Duration(milliseconds: 320),
               child: isOtpPhase
@@ -368,16 +371,20 @@ class _SampleUiOtpGridState extends State<_SampleUiOtpGrid> {
   @override
   Widget build(BuildContext context) {
     return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: List.generate(_SampleUiOtpGrid.length, (index) {
-        return _SampleUiOtpBox(
-          controller: _controllers[index],
-          focusNode: _focusNodes[index],
-          enabled: widget.enabled,
-          onChanged: (value) => _onChanged(index, value),
-          onBackspace: () => _onBackspace(index),
-        );
-      }),
+      children: [
+        for (var index = 0; index < _SampleUiOtpGrid.length; index++) ...[
+          if (index > 0) const SizedBox(width: 8),
+          Expanded(
+            child: _SampleUiOtpBox(
+              controller: _controllers[index],
+              focusNode: _focusNodes[index],
+              enabled: widget.enabled,
+              onChanged: (value) => _onChanged(index, value),
+              onBackspace: () => _onBackspace(index),
+            ),
+          ),
+        ],
+      ],
     );
   }
 }
@@ -422,7 +429,6 @@ class _SampleUiOtpBoxState extends State<_SampleUiOtpBox> {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: 46,
       height: 56,
       child: KeyboardListener(
         focusNode: _keyboardFocusNode,

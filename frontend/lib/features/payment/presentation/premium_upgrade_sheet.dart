@@ -19,7 +19,8 @@ class PremiumUpgradeSheet extends ConsumerStatefulWidget {
   }
 
   @override
-  ConsumerState<PremiumUpgradeSheet> createState() => _PremiumUpgradeSheetState();
+  ConsumerState<PremiumUpgradeSheet> createState() =>
+      _PremiumUpgradeSheetState();
 }
 
 class _PremiumUpgradeSheetState extends ConsumerState<PremiumUpgradeSheet> {
@@ -34,14 +35,18 @@ class _PremiumUpgradeSheetState extends ConsumerState<PremiumUpgradeSheet> {
   @override
   Widget build(BuildContext context) {
     ref.listen<PaymentState>(paymentNotifierProvider, (previous, next) {
-      if (next.status == PaymentStatus.success && previous?.status != PaymentStatus.success) {
+      if (next.status == PaymentStatus.success &&
+          previous?.status != PaymentStatus.success) {
         Navigator.of(context).pop();
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             backgroundColor: AppColors.panelCream,
             content: Text(
               'Welcome to Premium! Enjoy unlimited high-fidelity streaming.',
-              style: TextStyle(color: AppColors.crimson, fontWeight: FontWeight.w600),
+              style: TextStyle(
+                color: AppColors.crimson,
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ),
         );
@@ -59,7 +64,7 @@ class _PremiumUpgradeSheetState extends ConsumerState<PremiumUpgradeSheet> {
         ),
         child: SafeArea(
           top: false,
-          child: Padding(
+          child: SingleChildScrollView(
             padding: const EdgeInsets.fromLTRB(24, 20, 24, 24),
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -76,7 +81,11 @@ class _PremiumUpgradeSheetState extends ConsumerState<PremiumUpgradeSheet> {
                     ),
                   ),
                 ),
-                const Icon(Icons.workspace_premium, color: AppColors.gold, size: 40),
+                const Icon(
+                  Icons.workspace_premium,
+                  color: AppColors.gold,
+                  size: 40,
+                ),
                 const SizedBox(height: 12),
                 Text(
                   'Go Premium',
@@ -114,29 +123,40 @@ class _PremiumUpgradeSheetState extends ConsumerState<PremiumUpgradeSheet> {
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                if (state.status == PaymentStatus.failure && state.errorMessage != null) ...[
+                if (state.status == PaymentStatus.failure &&
+                    state.errorMessage != null) ...[
                   const SizedBox(height: 14),
                   Text(
                     state.errorMessage!,
                     textAlign: TextAlign.center,
-                    style: const TextStyle(color: AppColors.gold, fontWeight: FontWeight.w600),
+                    style: const TextStyle(
+                      color: AppColors.gold,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ],
                 const SizedBox(height: 22),
                 ElevatedButton(
                   onPressed: state.isBusy
                       ? null
-                      : () => ref.read(paymentNotifierProvider.notifier).startUpgrade(),
+                      : () => ref
+                            .read(paymentNotifierProvider.notifier)
+                            .startUpgrade(),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.gold,
                     foregroundColor: AppColors.charcoal,
-                    disabledBackgroundColor: AppColors.gold.withValues(alpha: 0.4),
+                    disabledBackgroundColor: AppColors.gold.withValues(
+                      alpha: 0.4,
+                    ),
                   ),
                   child: state.isBusy
                       ? const SizedBox(
                           height: 20,
                           width: 20,
-                          child: CircularProgressIndicator(strokeWidth: 2.4, color: AppColors.charcoal),
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2.4,
+                            color: AppColors.charcoal,
+                          ),
                         )
                       : const Text('Upgrade Now'),
                 ),
@@ -161,7 +181,9 @@ class _BenefitRow extends StatelessWidget {
       children: [
         Icon(icon, color: AppColors.teal, size: 20),
         const SizedBox(width: 12),
-        Expanded(child: Text(label, style: const TextStyle(color: AppColors.charcoal))),
+        Expanded(
+          child: Text(label, style: const TextStyle(color: AppColors.charcoal)),
+        ),
       ],
     );
   }

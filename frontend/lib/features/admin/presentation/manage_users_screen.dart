@@ -58,14 +58,22 @@ class _ManageUsersScreenState extends ConsumerState<ManageUsersScreen> {
       }
       if (state.status == AdminUsersStatus.loaded) {
         return const Center(
-          child: Text('No users yet.', style: TextStyle(color: AppColors.charcoal)),
+          child: Text(
+            'No users yet.',
+            style: TextStyle(color: AppColors.charcoal),
+          ),
         );
       }
-      return const Center(child: CircularProgressIndicator(color: AppColors.teal));
+      return const Center(
+        child: CircularProgressIndicator(color: AppColors.teal),
+      );
     }
 
     return ListView.separated(
-      padding: const EdgeInsets.all(16),
+      // Bottom clearance matches manage_shows/audios_screen's FAB-safe
+      // padding, so the last row doesn't sit flush against a bottom
+      // gesture bar/home indicator on devices without a FAB here.
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 96),
       itemCount: state.users.length,
       separatorBuilder: (_, _) => const SizedBox(height: 12),
       itemBuilder: (context, index) {
@@ -130,7 +138,10 @@ class _UserRow extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(width: 8),
-                      TierBadge(label: isPremium ? 'PREMIUM' : 'STANDARD', color: tierColor),
+                      TierBadge(
+                        label: isPremium ? 'PREMIUM' : 'STANDARD',
+                        color: tierColor,
+                      ),
                     ],
                   ),
                   const SizedBox(height: 4),
@@ -166,4 +177,3 @@ class _UserRow extends StatelessWidget {
     );
   }
 }
-

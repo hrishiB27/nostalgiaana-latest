@@ -24,7 +24,8 @@ class ContentDetailScreen extends ConsumerStatefulWidget {
   final ContentResponseModel content;
 
   @override
-  ConsumerState<ContentDetailScreen> createState() => _ContentDetailScreenState();
+  ConsumerState<ContentDetailScreen> createState() =>
+      _ContentDetailScreenState();
 }
 
 class _ContentDetailScreenState extends ConsumerState<ContentDetailScreen> {
@@ -44,7 +45,9 @@ class _ContentDetailScreenState extends ConsumerState<ContentDetailScreen> {
 
     setState(() => _isLoadingStream = true);
     try {
-      final stream = await ref.read(listenerContentApiProvider).getStreamUrl(content.id);
+      final stream = await ref
+          .read(listenerContentApiProvider)
+          .getStreamUrl(content.id);
       if (content.contentType == ContentType.show) {
         if (mounted) {
           Navigator.of(context).push(
@@ -58,15 +61,15 @@ class _ContentDetailScreenState extends ConsumerState<ContentDetailScreen> {
           );
         }
       } else {
-        await ref.read(audioPlayerProvider.notifier).play(
-              stream.url,
-              contentId: content.id,
-              title: content.title,
-            );
+        await ref
+            .read(audioPlayerProvider.notifier)
+            .play(stream.url, contentId: content.id, title: content.title);
       }
     } catch (error) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(messageFor(error))));
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(messageFor(error))));
       }
     } finally {
       if (mounted) setState(() => _isLoadingStream = false);
@@ -119,7 +122,12 @@ class _ContentDetailScreenState extends ConsumerState<ContentDetailScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Expanded(
-                  child: Text(content.title, style: Theme.of(context).textTheme.headlineMedium),
+                  child: Text(
+                    content.title,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: Theme.of(context).textTheme.headlineMedium,
+                  ),
                 ),
                 if (content.isPremium) ...[
                   const SizedBox(width: 8),
@@ -129,18 +137,32 @@ class _ContentDetailScreenState extends ConsumerState<ContentDetailScreen> {
             ),
             if (content.speaker != null) ...[
               const SizedBox(height: 6),
-              Text(content.speaker!, style: Theme.of(context).textTheme.bodySmall),
+              Text(
+                content.speaker!,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
             ],
             if (content.categoryName != null) ...[
               const SizedBox(height: 4),
               Text(
                 content.categoryName!,
-                style: TextStyle(color: accent, fontWeight: FontWeight.w600, fontSize: 12),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  color: accent,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 12,
+                ),
               ),
             ],
             const SizedBox(height: 16),
             if (content.description != null && content.description!.isNotEmpty)
-              Text(content.description!, style: Theme.of(context).textTheme.bodyMedium),
+              Text(
+                content.description!,
+                style: Theme.of(context).textTheme.bodyMedium,
+              ),
             const SizedBox(height: 28),
             ElevatedButton.icon(
               onPressed: _isLoadingStream ? null : _playNow,
@@ -149,7 +171,10 @@ class _ContentDetailScreenState extends ConsumerState<ContentDetailScreen> {
                   ? const SizedBox(
                       height: 18,
                       width: 18,
-                      child: CircularProgressIndicator(strokeWidth: 2.2, color: Colors.white),
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2.2,
+                        color: Colors.white,
+                      ),
                     )
                   : const Icon(Icons.play_arrow),
               label: const Text('Play Now'),

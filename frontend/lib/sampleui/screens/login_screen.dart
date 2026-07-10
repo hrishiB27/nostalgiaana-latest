@@ -12,6 +12,8 @@ import '../../core/widgets/auth_form_card.dart';
 import '../widgets/auth_secondary_button.dart';
 import '../widgets/retro_doodle_background.dart';
 
+const _pendingApprovalMessage = 'You have not been approved yet';
+
 /// Login form reached from the landing screen's "Login" button. Unlike
 /// [CreateAccountScreen], login has a real OTP step on the backend
 /// (`AuthStatus.otpRequired` between `.login()` and `.verifyOtp()`), so
@@ -66,6 +68,26 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         );
   }
 
+  void _showPendingApprovalDialog() {
+    showDialog<void>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Almost there!'),
+        content: const Text(
+          "Your registration was successful, but your account is still pending "
+          "administrator approval. You'll be able to log in as soon as it's "
+          'approved — please check back soon.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Got it'),
+          ),
+        ],
+      ),
+    );
+  }
+
   void _resend() {
     if (_resendSecondsRemaining > 0) return;
     ref
@@ -90,6 +112,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           next.otpIdentifier != null &&
           previous?.status == AuthStatus.loading) {
         _otpGridKey.currentState?.clear();
+      }
+      if (next.status == AuthStatus.error &&
+          next.errorMessage == _pendingApprovalMessage &&
+          previous?.status == AuthStatus.loading) {
+        _showPendingApprovalDialog();
       }
     });
 

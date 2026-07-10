@@ -63,14 +63,26 @@ class _VideoPlayerScreenState extends ConsumerState<VideoPlayerScreen> {
   Widget build(BuildContext context) {
     final controller = ref.read(videoPlayerProvider.notifier).controller;
 
-    return Scaffold(
-      backgroundColor: Colors.black,
-      appBar: AppBar(
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) async {
+        if (didPop) return;
+        // Await the stop completing before actually leaving the screen —
+        // dispose() can't be async, so relying on it alone lets the async
+        // native stop command race against the Video widget/texture being
+        // torn down, which is how audio was surviving navigation away.
+        await ref.read(videoPlayerProvider.notifier).stop();
+        if (context.mounted) Navigator.of(context).pop();
+      },
+      child: Scaffold(
         backgroundColor: Colors.black,
-        foregroundColor: Colors.white,
-        title: Text(widget.title, maxLines: 1, overflow: TextOverflow.ellipsis),
+        appBar: AppBar(
+          backgroundColor: Colors.black,
+          foregroundColor: Colors.white,
+          title: Text(widget.title, maxLines: 1, overflow: TextOverflow.ellipsis),
+        ),
+        body: Center(child: Video(controller: controller)),
       ),
-      body: Center(child: Video(controller: controller)),
     );
   }
 }

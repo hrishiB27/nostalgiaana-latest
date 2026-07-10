@@ -31,7 +31,31 @@ class UserHomeScreenShell extends ConsumerStatefulWidget {
 class _UserHomeScreenShellState extends ConsumerState<UserHomeScreenShell> {
   String? _selectedCategoryId;
 
+  Future<bool> _confirmLogout() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Log out?'),
+        content: const Text('Are you sure you want to log out?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            style: TextButton.styleFrom(foregroundColor: AppColors.crimson),
+            child: const Text('Log Out'),
+          ),
+        ],
+      ),
+    );
+    return confirmed ?? false;
+  }
+
   Future<void> _logout() async {
+    if (!await _confirmLogout()) return;
+    if (!mounted) return;
     await ref.read(authNotifierProvider.notifier).logout();
     if (!mounted) return;
     Navigator.of(context).pushAndRemoveUntil(

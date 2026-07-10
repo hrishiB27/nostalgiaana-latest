@@ -9,6 +9,10 @@ class AppColors {
 
   static const cream = Color(0xFFFDFBF7);
   static const panelCream = Color(0xFFFDF5EC);
+  /// Dashboard/screen background — deliberately more visibly beige than
+  /// [cream] (used by the splash screen and sheet surfaces, which stay
+  /// unchanged) or [panelCream] (used for input fields/panels).
+  static const beige = Color(0xFFF2E8D5);
   static const crimson = Color(0xFFC62828);
   static const teal = Color(0xFF00897B);
   static const gold = Color(0xFFFBC02D);
@@ -45,7 +49,7 @@ class AppTheme {
       useMaterial3: true,
       brightness: Brightness.light,
       colorScheme: ColorScheme.light(
-        surface: AppColors.cream,
+        surface: AppColors.beige,
         primary: AppColors.crimson,
         secondary: AppColors.teal,
         tertiary: AppColors.gold,
@@ -55,11 +59,11 @@ class AppTheme {
         onSecondary: Colors.white,
         onError: Colors.white,
       ),
-      scaffoldBackgroundColor: AppColors.cream,
+      scaffoldBackgroundColor: AppColors.beige,
       textTheme: textTheme,
       iconTheme: const IconThemeData(color: AppColors.charcoal),
       appBarTheme: AppBarTheme(
-        backgroundColor: AppColors.cream,
+        backgroundColor: AppColors.beige,
         foregroundColor: AppColors.charcoal,
         elevation: 0,
         centerTitle: true,

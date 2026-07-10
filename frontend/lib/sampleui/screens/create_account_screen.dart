@@ -7,6 +7,7 @@ import '../../features/auth/data/models/signup_request.dart';
 import '../../features/auth/presentation/post_auth_router.dart';
 import '../../core/config/theme_config.dart';
 import '../../core/data/countries.dart';
+import '../../core/widgets/auth_form_card.dart';
 import '../../core/widgets/nostalgiaana_brand_text.dart';
 import '../widgets/auth_primary_button.dart';
 import '../widgets/retro_doodle_background.dart';
@@ -96,9 +97,11 @@ class _CreateAccountScreenState extends ConsumerState<CreateAccountScreen> {
             // — without this extra top padding, content starts underneath
             // the "Create Account" title instead of below it.
             padding: EdgeInsets.fromLTRB(24, 24 + kToolbarHeight, 24, 24),
-            child: Form(
-              key: _formKey,
-              child: Column(
+            child: AuthFormCard(
+              maxWidth: 560,
+              child: Form(
+                key: _formKey,
+                child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   Row(
@@ -266,6 +269,7 @@ class _CreateAccountScreenState extends ConsumerState<CreateAccountScreen> {
           ),
         ),
       ),
+    ),
     );
   }
 }

@@ -8,6 +8,7 @@ import '../../features/auth/application/auth_notifier.dart';
 import '../../features/auth/application/auth_state.dart';
 import '../../features/auth/presentation/post_auth_router.dart';
 import '../../core/config/theme_config.dart';
+import '../../core/widgets/auth_form_card.dart';
 import '../widgets/auth_secondary_button.dart';
 import '../widgets/retro_doodle_background.dart';
 
@@ -111,11 +112,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             // — without this extra top padding, content starts underneath
             // the "Login" title instead of below it.
             padding: EdgeInsets.fromLTRB(24, 24 + kToolbarHeight, 24, 24),
-            child: AnimatedSwitcher(
-              duration: const Duration(milliseconds: 320),
-              child: isOtpPhase
-                  ? _buildOtpPhase(authState, isLoading)
-                  : _buildCredentialsPhase(authState, isLoading),
+            child: AuthFormCard(
+              maxWidth: 460,
+              child: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 320),
+                child: isOtpPhase
+                    ? _buildOtpPhase(authState, isLoading)
+                    : _buildCredentialsPhase(authState, isLoading),
+              ),
             ),
           ),
         ),

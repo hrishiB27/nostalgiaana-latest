@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../core/layout/app_breakpoints.dart';
+import '../../core/widgets/auth_form_card.dart';
 import '../widgets/auth_primary_button.dart';
 import '../widgets/auth_secondary_button.dart';
 import '../widgets/footer_legal_text.dart';
@@ -54,23 +56,33 @@ class AuthLandingScreen extends StatelessWidget {
                       style: Theme.of(context).textTheme.bodyMedium,
                     ),
                     const SizedBox(height: 24),
-                    AuthPrimaryButton(
-                      label: 'Create Account',
-                      onPressed: () => Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (_) => const CreateAccountScreen(),
-                        ),
+                    AuthFormCard(
+                      maxWidth: 420,
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          AuthPrimaryButton(
+                            label: 'Create Account',
+                            onPressed: () => Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (_) => const CreateAccountScreen(),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 14),
+                          AuthSecondaryButton(
+                            label: 'Login',
+                            onPressed: () => Navigator.of(context).push(
+                              MaterialPageRoute(builder: (_) => const LoginScreen()),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                    const SizedBox(height: 14),
-                    AuthSecondaryButton(
-                      label: 'Login',
-                      onPressed: () => Navigator.of(context).push(
-                        MaterialPageRoute(builder: (_) => const LoginScreen()),
-                      ),
-                    ),
-                    const SizedBox(height: 48),
-                    const VintageIllustrationRow(),
+                    if (!AppBreakpoints.isDesktop(context)) ...[
+                      const SizedBox(height: 48),
+                      const VintageIllustrationRow(),
+                    ],
                     const SizedBox(height: 24),
                     const TrustStrip(),
                     const SizedBox(height: 24),

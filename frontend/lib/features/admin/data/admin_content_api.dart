@@ -57,7 +57,20 @@ class AdminContentApi {
       mediaFieldName: await _multipartFromPlatformFile(media),
       if (thumbnail != null) 'thumbnail': await _multipartFromPlatformFile(thumbnail),
     });
-    await _dio.post<void>(path, data: formData);
+    await _dio.post<void>(
+      path,
+      data: formData,
+      // dioProvider's default 15s connect/receive timeouts are sized for
+      // plain JSON calls, not a real audio/video upload — the backend can
+      // easily take longer than that to receive the file, validate it, and
+      // stream it to R2, especially on Render's free tier. Without this
+      // override the client gave up and showed a generic error while the
+      // upload kept going and completed successfully server-side anyway.
+      options: Options(
+        sendTimeout: const Duration(minutes: 5),
+        receiveTimeout: const Duration(minutes: 5),
+      ),
+    );
   }
 
   // file_picker only populates `path` on mobile/desktop and `bytes` on web

@@ -13,6 +13,9 @@ class AppColors {
   /// [cream] (used by the splash screen and sheet surfaces, which stay
   /// unchanged) or [panelCream] (used for input fields/panels).
   static const beige = Color(0xFFF2E8D5);
+  /// One shade darker than [beige], used only by [CommandHeaderBar] to read
+  /// as a distinct raised panel against the page background.
+  static const headerBeige = Color(0xFFE8DAC0);
   static const crimson = Color(0xFFC62828);
   static const teal = Color(0xFF00897B);
   static const gold = Color(0xFFFBC02D);

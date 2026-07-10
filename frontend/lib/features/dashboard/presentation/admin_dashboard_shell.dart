@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/config/theme_config.dart';
 import '../../../core/layout/app_breakpoints.dart';
+import '../../../core/widgets/command_header_bar.dart';
 import '../../../sampleui/screens/auth_landing_screen.dart';
 import '../../admin/presentation/manage_audios_screen.dart';
 import '../../admin/presentation/manage_shows_screen.dart';
@@ -54,7 +55,8 @@ class _AdminDashboardShellState extends ConsumerState<AdminDashboardShell> {
   ];
 
   /// Embedded next to the [NavigationRail] on desktop width — AppBar
-  /// omitted since `_buildDesktopBody`'s shared Scaffold AppBar covers it.
+  /// omitted since `_buildDesktopBody` shows its own `CommandHeaderBar`
+  /// above the embedded content instead.
   static const _railDestinations = [
     ManageShowsScreen(showAppBar: false),
     ManageAudiosScreen(showAppBar: false),
@@ -147,12 +149,24 @@ class _AdminDashboardShellState extends ConsumerState<AdminDashboardShell> {
     );
   }
 
+  List<Widget> get _headerActions => [
+    IconButton(
+      onPressed: _logout,
+      icon: const Icon(Icons.logout, color: AppColors.charcoal),
+    ),
+  ];
+
   Widget _buildDesktopBody() {
     return Row(
       // Row defaults to CrossAxisAlignment.center, which left a gap above
       // the rail/divider if either ended up shorter than the row's full
       // height — stretch guarantees the rail, divider, and content pane all
-      // span the complete height with no gap at the top.
+      // span the complete height with no gap at the top. There is no
+      // Scaffold.appBar above this Row anymore (see build() below), so the
+      // rail and its divider now start at the window's absolute top edge —
+      // the "Admin Console" heading/logout button live in a
+      // CommandHeaderBar inside the content pane instead, not spanning the
+      // full width above the rail.
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         NavigationRail(
@@ -176,7 +190,14 @@ class _AdminDashboardShellState extends ConsumerState<AdminDashboardShell> {
         ),
         const VerticalDivider(width: 1),
         Expanded(
-          child: IndexedStack(index: _selectedIndex, children: _railDestinations),
+          child: Column(
+            children: [
+              CommandHeaderBar(title: 'Admin Console', actions: _headerActions),
+              Expanded(
+                child: IndexedStack(index: _selectedIndex, children: _railDestinations),
+              ),
+            ],
+          ),
         ),
       ],
     );
@@ -188,16 +209,14 @@ class _AdminDashboardShellState extends ConsumerState<AdminDashboardShell> {
       builder: (context, constraints) {
         final desktop = AppBreakpoints.isDesktopWidth(constraints.maxWidth);
         return Scaffold(
-          appBar: AppBar(
-            title: const Text('Admin Console'),
-            actions: [
-              IconButton(
-                onPressed: _logout,
-                icon: const Icon(Icons.logout, color: AppColors.charcoal),
-              ),
-            ],
-          ),
-          body: desktop ? _buildDesktopBody() : _buildMobileBody(context),
+          body: desktop
+              ? _buildDesktopBody()
+              : Column(
+                  children: [
+                    CommandHeaderBar(title: 'Admin Console', actions: _headerActions),
+                    Expanded(child: _buildMobileBody(context)),
+                  ],
+                ),
         );
       },
     );

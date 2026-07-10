@@ -4,67 +4,70 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project overview
 
-Nostalgiaana is a monorepo for an audio/video platform serving Hindi film songs, trivia, interviews, and podcasts. Two components, developed independently:
+Nostalgiaana is a monorepo for an audio/video platform serving Hindi film songs, trivia, interviews, and podcasts. Two components:
 
-- **`audio/`** — Spring Boot 4.1 / Java 21 backend (`com.nostalgiaana.audio`), tracked as a **git submodule** (its own separate repo/history, nested inside this one — commits inside `audio/` don't show up in top-level `git log`, and the parent repo only tracks which submodule commit is checked out). Has its own detailed [audio/CLAUDE.md](audio/CLAUDE.md) — **read it before working on the backend**; it documents the auth/OTP flow, admin endpoints, storage buckets, payment webhook, and Flyway migration history in depth.
-- **`frontend/`** — Flutter app (Dart SDK `^3.11.1`), the client for the backend above.
+- **`audio/`** — Spring Boot 4.1 / Java 21 backend (`com.nostalgiaana.audio`). **Normal tracked directory in this repo** (not a submodule — an earlier broken/orphaned `160000` gitlink was fixed; all ~60+ files are individually tracked now). Has its own [audio/CLAUDE.md](audio/CLAUDE.md) — read it before backend work; it's current (phone-only auth, R2 storage, dual-MinIO-client presigning, migrations through `V7`).
+- **`frontend/`** — Flutter app (Dart SDK `^3.11.1`), Riverpod (`Notifier`/`NotifierProvider` style, no code-generator), feature-by-folder + layered-within-feature. Windows desktop is the only platform actually GUI-tested so far.
 
-There is no root-level build — each component is built/run independently from within its own directory. There is no Docker Compose file, no CI/CD, and no `.env`/`.env.example` anywhere in the repo — all local service connections (Postgres, Redis, MinIO) are plain hardcoded `localhost` values in `audio/src/main/resources/application.yaml`. See "Local dev networking" below before assuming media/API calls will work from anywhere other than the machine running the backend.
+No root-level build — each component builds/runs independently from its own directory.
+
+## Current deployment architecture ("zero-domain", free-tier, all live and verified)
+
+- **Backend**: deployed on **Render** (`https://nostalgiaana-audio.onrender.com`) as a Docker web service (root [render.yaml](render.yaml), `runtime: docker` — **Render has no native Java/Maven runtime**, so it must build via `audio/Dockerfile`, not `buildCommand`/`startCommand`). Free tier: the service **cold-starts after inactivity**, first request can take 30–90s.
+- **Database**: **Supabase-hosted Postgres**, reached via plain JDBC (`DB_NAME`/`DB_USER`/`DB_PASS`). Supabase's Auth/BaaS product is **not** used — this is Postgres hosting only.
+- **Cache**: **Upstash Redis**, TLS (`REDIS_SSL=true`), used only for login-OTP storage (5-min TTL keys), not general caching.
+- **Object storage**: **Cloudflare R2** (S3-compatible), reached through the existing `io.minio` Java client (`MinioClient`) — no separate AWS/R2 SDK. One physical bucket (`nostalgiaana-media`) backs all four logical bucket properties (audio/covers/video/profile-pictures), distinguished purely by object key (raw UUID + extension).
+- **Local dev**: still fully supported with `localhost` defaults for everything (Postgres/Redis/MinIO) — every env var in `application.yaml` has a working local fallback except `SUPABASE_URL`-style knobs, which don't exist (there is no Supabase Auth dependency to need one).
+
+All of the above was verified end-to-end this session: signup → login → Redis-stored OTP → verify → JWT → presigned R2 URL → **real file download**, tested directly against the live Render deployment.
+
+### Critical, non-obvious backend config gotchas (all fixed, all load-bearing — don't revert without understanding why)
+
+1. **PgBouncer + Hikari**: Supabase's transaction-mode pooler (port 6543) breaks the pgjdbc driver's server-side prepared-statement cache (`"prepared statement already exists"` errors under load). Fixed via `spring.datasource.hikari.data-source-properties.prepareThreshold: 0` in `application.yaml` — enforced in code, not left as a hopeful `DB_NAME` query-string convention.
+2. **Flyway baseline on a fresh Supabase project**: Supabase's `public` schema isn't truly empty on a brand-new project (default extensions/objects), so Flyway's `baseline-on-migrate` auto-triggers and silently skips `V1` (which creates `users`/`categories`/`content`) by default. Fixed via `spring.flyway.baseline-version: 0`.
+3. **R2 presigned URL host**: `minio.public-endpoint` **must** point at `STORAGE_ENDPOINT` (R2's real S3 API host, `https://<account-id>.r2.cloudflarestorage.com`), **not** R2's separate "public dev URL" feature. The public dev URL is already scoped to one bucket via its subdomain, so MinIO's path-style presigned URLs (which embed the bucket name in the path) 404 against it — confirmed by direct reproduction and fixed in commit `d3ec61c`. `STORAGE_URL` is intentionally **not** an env var anymore (removed from `.env`/`.env.example`/`render.yaml`) — don't reintroduce it for this purpose.
+4. **`ADMIN_BOOTSTRAP_ENABLED=true`** (Render default) means `AdminBootstrapRunner` resets the admin account (phone `9987092587`) to `ADMIN_BOOTSTRAP_PASSWORD`'s current value on **every single restart** — not a one-time seed. Check the real value in `.env` (gitignored) or Render's dashboard before assuming a previous manual password change persisted.
 
 ## Commands
 
 ### Backend (`audio/`)
-See [audio/CLAUDE.md](audio/CLAUDE.md) for the full command list, required local services (Postgres/Redis/MinIO), and environment quirks. Quick reference:
 ```
 cd audio
-./mvnw.cmd spring-boot:run                    # run (PowerShell/cmd)
+./mvnw.cmd spring-boot:run                    # run (PowerShell/cmd) — needs real env vars for cloud services, see below
 ./mvnw.cmd test                               # all tests
 ./mvnw.cmd test -Dtest=ClassName#methodName   # single test
 ```
+Local run needs `DB_NAME`/`DB_USER`/`DB_PASS`, `REDIS_HOST`/`REDIS_PORT`/`REDIS_PASSWORD`/`REDIS_SSL`, `STORAGE_ENDPOINT`/`STORAGE_KEY`/`STORAGE_SECRET`/`STORAGE_BUCKET`, `JWT_SECRET`, `ADMIN_BOOTSTRAP_ENABLED`/`ADMIN_BOOTSTRAP_PASSWORD` set as real environment variables (no dotenv library on the classpath — `.env` is not auto-loaded; export values into the shell session yourself, e.g. `$env:DB_NAME = "..."` in PowerShell) to reach the live Supabase/Upstash/R2 services. Omit them entirely to fall back to local Postgres/Redis/MinIO on `localhost` defaults instead.
 
 ### Frontend (`frontend/`)
 ```
 cd frontend
-flutter pub get             # install dependencies
-flutter run                 # run on a connected device/emulator (-d chrome / -d windows etc.)
-flutter analyze             # lint (flutter_lints, see analysis_options.yaml)
-flutter test                # run all tests
-flutter test test/widget_test.dart   # run a single test file
+flutter pub get
+flutter analyze
+flutter test
+flutter run -d windows --dart-define=API_BASE_URL=https://nostalgiaana-audio.onrender.com/api
+flutter run -d <emulator-id> --dart-define=API_BASE_URL=https://nostalgiaana-audio.onrender.com/api
 ```
-`AppConfig.apiBaseUrl` ([frontend/lib/core/config/app_config.dart](frontend/lib/core/config/app_config.dart)) hardcodes the backend URL per platform for local dev: the Android emulator needs `10.0.2.2:8080`, everything else (web/iOS sim/desktop) uses `localhost:8080`. A physical device needs the host LAN IP set manually — there's no env-based override currently wired up.
+`AppConfig.apiBaseUrl` ([app_config.dart](frontend/lib/core/config/app_config.dart)) resolves in priority order: (1) `--dart-define=API_BASE_URL=...` explicit override, (2) `kReleaseMode` → the Render URL automatically (so a release build never accidentally ships pointed at localhost), (3) per-platform local-dev default (`10.0.2.2` for Android emulator, `localhost` elsewhere) for plain debug `flutter run`. **Media URLs need no client-side rewriting at all** — cover/audio/video URLs come back as complete presigned R2 URLs in API responses and are used as-is; this also means the historical "emulator/device can't reach localhost media" problem is resolved for real devices/emulators as long as `API_BASE_URL` is overridden, since R2 URLs are real internet-reachable HTTPS.
 
 ## Frontend architecture
 
-**Feature-by-folder + layered-within-feature**, using Riverpod (`flutter_riverpod`, `Notifier`/`NotifierProvider` style — not the code-generator). Each `lib/features/<name>/` is split into:
-- `data/` — API client (`*_api.dart`, talks to the backend via the shared `dioProvider`) and response/request models.
-- `application/` — Riverpod `Notifier` classes holding UI state (`*_notifier.dart` + a `*_state.dart`).
-- `presentation/` — screens and widgets.
-- `domain/` — feature-local plain Dart types not tied to a wire format (e.g. `AuthenticatedUser`).
+Each `lib/features/<name>/` is split into `data/` (API client + models), `application/` (Riverpod `Notifier` + state), `presentation/` (screens/widgets), `domain/` (feature-local plain Dart types). Features: `auth`, `user`, `category`, `content`, `admin`, `payment`, `dashboard`. `lib/core/` holds the shared `dioProvider` (JWT auto-stamped via interceptor, reading from `secure_storage_service.dart`), `api_error.dart`'s `messageFor()` (unwraps the backend's `{error, status, timestamp}` shape — falls back to a generic "Something went wrong" string **only** when there's no HTTP response at all, i.e. a connection failure, not a business-logic error), and `theme_config.dart` (`AppColors`/`AppTheme` — the "Modern Retro" cream/crimson/teal/gold palette, Playfair Display headings + Inter body via `google_fonts`).
 
-Features: `auth`, `user`, `category`, `content` (listener-facing browsing/playback), `admin` (shows/audios/users management), `payment` (Razorpay), `dashboard` (post-login shells). New features should follow this same internal layering.
+**Auth**: phone-only, no email anywhere (migrated away in backend `V6`/`V7`; frontend has zero email references). Signup collects profile fields + password in one step, no OTP. Login is two-step: `POST /api/auth/login` → OTP challenge → `POST /api/auth/verify-otp` → real JWTs. This is the **original custom system**, unchanged — see "Known-reverted work" below.
 
-**Core** (`lib/core/`): `network/dio_client.dart` provides the single app-wide `Dio` instance (`dioProvider`) — every request is auto-stamped with the JWT from `secure_storage_service.dart` via an interceptor, so feature code never touches the `Authorization` header directly. `network/api_error.dart` has the shared error-message extraction (`messageFor`) used by notifiers' catch blocks.
+**Media playback**:
+- **Audio**: `just_audio`/`just_audio_windows`, via `AudioPlayerNotifier` (`features/content/application/audio_player_notifier.dart`) — a single app-wide `NotifierProvider` wrapping one `AudioPlayer`, surfaced via the persistent `NowPlayingBar` mini-player (mounted in both `UserHomeScreenShell`'s and `ContentDetailScreen`'s `Scaffold.bottomNavigationBar` — it was previously only in the dashboard shell, so playing from the detail screen wouldn't show it until popping back; fixed).
+- **Video**: `media_kit`/`media_kit_video` (**not** `video_player`, which has no Windows/Linux backend — this project's tested platform). `VideoPlayerNotifier` mirrors `AudioPlayerNotifier`'s shape; `VideoPlayerScreen` is a dedicated full-screen route (video doesn't persist across navigation the way audio does — `stop()` is called on screen dispose). On Android/iOS, `VideoPlayerScreen` forces landscape orientation + immersive-sticky fullscreen on entry and restores portrait/edge-to-edge on exit (guarded by a `defaultTargetPlatform` check — desktop/web untouched).
+- **Mutual exclusivity**: `AudioPlayerNotifier.play()` and `VideoPlayerNotifier.play()` each pause the other via a cross `ref.read(otherProvider.notifier).pause()` call, so audio and video never play simultaneously.
 
-**Auth flow** mirrors the backend exactly (see audio/CLAUDE.md's Auth section): `AuthNotifier.signup` gets tokens immediately (no OTP); `login` returns an OTP challenge (`AuthStatus.otpRequired`), and `verifyOtp` is what actually persists tokens and flips state to `authenticated`. `AuthNotifier.refreshProfile` re-syncs role/membership from `GET /api/user/me` after a payment, since the Razorpay webhook that upgrades a user to PREMIUM happens server-to-server and the client's existing JWT/state can't reflect it on its own.
+**Mobile layout defensiveness** (audited and fixed this session, not a blanket rewrite — only real, verified risk points were touched): the 6-box OTP grid in `login_screen.dart` used fixed 46px-wide boxes in a `Row` with no `Expanded`, which numerically overflowed on a 320px-wide screen (now `Expanded`-wrapped); both `login_screen.dart` and `create_account_screen.dart` had `NeverScrollableScrollPhysics` on forms with real text fields (real keyboard-overflow risk, now removed, scrolling kept as a fallback rather than the primary layout strategy); both had an `extendBodyBehindAppBar`+`SafeArea` combination where content could render under the AppBar title (fixed with explicit `kToolbarHeight` top padding); `premium_upgrade_sheet.dart` was missing a scrollable wrapper that its sibling `content_form_sheet.dart` already had correctly (fixed); content/video titles got `maxLines`/`overflow` defense. Fixed-size decorative elements (icons, avatars, the horizontally-scrolling carousel cards' fixed widths) were deliberately **not** touched — they're correct as-is, not overflow risks.
 
-**Routing has no router package** — it's plain imperative `Navigator` calls. `splash_screen.dart` → `sampleui/screens/auth_landing_screen.dart` (role-portal gate: user vs admin) → login/signup screens. After successful auth, `post_auth_router.dart`'s `routeToDashboard` sends the user to `AdminDashboardShell` or `UserHomeScreenShell` based on the user's **actual** `role` from the backend response — never the portal they logged in through, since that's just a UI shortcut, not an authorization decision — and clears the back stack so the back button can't return into a login form.
+## Known-reverted work — do not assume these exist, don't resurrect without checking with the user first
 
-**`lib/sampleui/`** holds the auth-flow visual design (landing screen, login/create-account screens, themed buttons/widgets, a full-bleed `RetroDoodleBackground` wallpaper layer behind all three) and is actively imported by `splash_screen.dart` and both dashboard shells — despite the name, it is not unused scaffolding.
+- **Supabase Auth migration**: a full replacement of the custom JWT/Redis-OTP auth system with Supabase Auth (`signInWithOtp`, JWKS validation via `spring-boot-starter-oauth2-resource-server`, a Postgres trigger syncing `auth.users`→`public.users`) was designed and partially implemented, then **fully reverted** at request. Nothing from it exists in the codebase — auth is still the original custom system described above.
+- **Desktop-adaptive UI**: a `Responsive` breakpoint utility, `Center`+`ConstrainedBox(maxWidth: 1000)` wrapping on major screens, a shelf→`GridView` conversion for the home screen's content carousels, and a real `NavigationRail` for `AdminDashboardShell`'s three destinations (Manage Shows/Audios/Users) were designed, built, and verified via `flutter analyze` — then **entirely reverted** before being committed, at request. `origin/main` has none of it. This is a real, worthwhile next task, but it needs to be built fresh, not resumed — and the `NavigationRail`-vs-"just constrain the mini-player" decision was a genuine fork last time (user chose the rail), not something to assume unprompted.
 
-Theme/colors live in `lib/core/config/theme_config.dart` (`AppTheme`, `AppColors`) — reuse these tokens rather than hardcoding colors in new screens.
+## Verification notes for whoever picks this up next
 
-**Media playback**: audio uses `just_audio`/`just_audio_windows` (`AudioPlayerNotifier`, `lib/features/content/application/audio_player_notifier.dart`), wired up and working. **There is currently no video-playback library in `pubspec.yaml` at all** — Shows (video content) have no player screen wired to any UI; `ContentDetailScreen._playNow()` shows a "coming soon" message for Shows rather than playing them. (`video_player` has no Windows/Linux backend; `media_kit` was evaluated as a replacement but is not currently a dependency — check with the user before assuming either is the intended path forward.)
-
-## Local dev networking: the localhost/emulator/device mismatch
-
-This is a recurring, verified issue worth understanding before touching auth, media, or admin-upload code — several sessions have independently rediscovered it.
-
-**The root cause**: `audio/src/main/resources/application.yaml` hardcodes `localhost` in exactly four places — `spring.datasource.url` (line 6, Postgres), `spring.data.redis.host` (line 27), `minio.endpoint` (line 58), and `app.frontend-url` (line 67, currently unreferenced elsewhere in the codebase). The frontend mirrors this: `AppConfig.apiBaseUrl` ([app_config.dart](frontend/lib/core/config/app_config.dart)) hardcodes `localhost:8080` for every platform except the Android emulator, which gets the special alias `10.0.2.2` — but that alias is Android-emulator-specific and does nothing for a real physical device (Android or iOS), which also just sees `localhost` and fails to reach the dev machine.
-
-**Why media specifically breaks, not just the API**: `ContentService.getStreamUrl()`/`presignedCoverUrl()` (`audio/src/main/java/com/nostalgiaana/audio/content/ContentService.java`) return **presigned MinIO URLs** — complete, absolute, SigV4-signed URLs with `minio.endpoint`'s host baked directly into them (`StorageService.getPresignedUrl()`, `audio/.../storage/StorageService.java`). These are handed to the Flutter client as-is and used directly (e.g. `AudioPlayerNotifier.play(stream.url, ...)`, `Image.network(content.coverUrl!)`) — nothing rewrites them client-side. `AppConfig`'s `10.0.2.2` fix only helps the JSON API calls that go through Dio's `baseUrl`; it has no effect on these presigned URLs at all, since they're absolute URLs from a completely separate service (MinIO on port 9000, not the Spring API on 8080) embedded directly in response bodies.
-
-**What works today, unmodified**: Windows desktop only — running both the Flutter app and the backend (+ Postgres/Redis/MinIO) on the same machine, where `localhost` correctly means "this machine" for everyone involved.
-
-**What's currently broken**: the Android emulator (API calls work via `10.0.2.2`, but every cover image, audio stream, and — if a player existed — video stream would fail, since none of those URLs get rewritten), and any real physical device (Android or iOS — both API calls *and* media URLs fail, since neither gets any non-`localhost` treatment for a real device).
-
-**There is currently no workaround in place for any of this** — no client-side URL rewriting, no environment-variable-driven backend config, no docker-compose, no `.env`. Client-side `localhost`→`10.0.2.2` string-rewriting approaches were repeatedly built and reverted in past sessions; a more robust fix (backend-driven, e.g. deploying to a real reachable host, or splitting MinIO's internal-vs-presigning endpoint via two `MinioClient` beans so the presigned host can be independently correct) was designed and validated but has also been reverted at the user's request as of the current state of this repo. Check with the user for current intent before re-implementing either approach — this has gone back and forth multiple times.
+Backend correctness has been proven with real requests against the live Render deployment (not just unit-level reasoning) — login, OTP, JWT issuance, and a full presigned-URL file download all succeeded end-to-end. Frontend changes this session pass `flutter analyze` cleanly and are reasoned against already-working existing patterns, but have **not** been visually/interactively GUI-tested — this environment has no reliable UI-automation pipeline for the native Windows app. Don't report frontend UI work as "done" without a manual pass; say explicitly that only static analysis was possible, same as this file does.

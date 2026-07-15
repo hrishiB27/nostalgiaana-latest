@@ -209,15 +209,17 @@ const _categoryGradients = [
 List<Color> _gradientForIndex(int index) => _categoryGradients[index % _categoryGradients.length];
 
 /// Picks an icon relevant to the category's name; falls back to a generic
-/// tag icon for anything that doesn't match a known show type (e.g. a
-/// category an admin creates later that isn't one of the seeded five).
+/// tag icon for anything that doesn't match a known theme.
 IconData _iconForCategory(String name) {
   final normalized = name.toLowerCase();
-  if (normalized.contains('weeknight')) return Icons.nights_stay_rounded;
-  if (normalized.contains('charcha') || normalized.contains('weekend')) return Icons.forum_rounded;
-  if (normalized.contains('khoj')) return Icons.travel_explore_rounded;
-  if (normalized.contains('guest')) return Icons.record_voice_over_rounded;
-  if (normalized.contains('member')) return Icons.groups_rounded;
+  if (normalized.contains('trivia') || normalized.contains('quiz')) return Icons.quiz_rounded;
+  if (normalized.contains('interview')) return Icons.mic_rounded;
+  if (normalized.contains('podcast')) return Icons.podcasts_rounded;
+  if (normalized.contains('song') ||
+      normalized.contains('film') ||
+      normalized.contains('music')) {
+    return Icons.music_note_rounded;
+  }
   return Icons.local_offer_rounded;
 }
 

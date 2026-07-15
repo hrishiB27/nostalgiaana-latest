@@ -50,6 +50,8 @@ class VideoPlayerNotifier extends Notifier<VideoPlayerState> {
   late final Player _player;
   late final VideoController controller;
 
+  static const _skipAmount = Duration(seconds: 10);
+
   @override
   VideoPlayerState build() {
     _player = Player();
@@ -94,6 +96,17 @@ class VideoPlayerNotifier extends Notifier<VideoPlayerState> {
   Future<void> pause() => _player.pause();
 
   Future<void> seek(Duration position) => _player.seek(position);
+
+  Future<void> skipBackward() {
+    final target = state.position - _skipAmount;
+    return _player.seek(target.isNegative ? Duration.zero : target);
+  }
+
+  Future<void> skipForward() {
+    final duration = state.duration;
+    final target = state.position + _skipAmount;
+    return _player.seek(duration != null && target > duration ? duration : target);
+  }
 
   Future<void> stop() async {
     await _player.stop();

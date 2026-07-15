@@ -61,7 +61,8 @@ class _VideoPlayerScreenState extends ConsumerState<VideoPlayerScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final controller = ref.read(videoPlayerProvider.notifier).controller;
+    final notifier = ref.read(videoPlayerProvider.notifier);
+    final controller = notifier.controller;
 
     return PopScope(
       canPop: false,
@@ -81,7 +82,62 @@ class _VideoPlayerScreenState extends ConsumerState<VideoPlayerScreen> {
           foregroundColor: Colors.white,
           title: Text(widget.title, maxLines: 1, overflow: TextOverflow.ellipsis),
         ),
-        body: Center(child: Video(controller: controller)),
+        body: Stack(
+          alignment: Alignment.center,
+          children: [
+            Center(child: Video(controller: controller)),
+            // Flanking rewind/forward-10s buttons, YouTube-style — sit at
+            // the screen's edges rather than the center so they don't
+            // compete with media_kit's own tap-to-toggle center controls.
+            Positioned.fill(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    _VideoSkipButton(
+                      icon: Icons.replay_10,
+                      onPressed: notifier.skipBackward,
+                    ),
+                    _VideoSkipButton(
+                      icon: Icons.forward_10,
+                      onPressed: notifier.skipForward,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Circular translucent skip button laid over the video — sized and styled
+/// to read clearly against arbitrary video frames regardless of content.
+class _VideoSkipButton extends StatelessWidget {
+  const _VideoSkipButton({required this.icon, required this.onPressed});
+
+  final IconData icon;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 52,
+      height: 52,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: Colors.black.withValues(alpha: 0.4),
+      ),
+      child: Material(
+        type: MaterialType.transparency,
+        child: InkWell(
+          customBorder: const CircleBorder(),
+          onTap: onPressed,
+          child: Icon(icon, color: Colors.white, size: 30),
+        ),
       ),
     );
   }

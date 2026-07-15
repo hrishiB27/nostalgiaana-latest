@@ -4,12 +4,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/config/theme_config.dart';
 import '../../../core/layout/adaptive_content_wrapper.dart';
 import '../../../core/network/api_error.dart';
+import '../../../core/widgets/floating_play_button.dart';
 import '../../../core/widgets/nostalgiaana_brand_text.dart';
 import '../../../core/widgets/tier_badge.dart';
 import '../../../sampleui/screens/auth_landing_screen.dart';
 import '../../auth/application/auth_notifier.dart';
 import '../../auth/data/models/user_role.dart';
 import '../../category/application/category_providers.dart';
+import '../../content/application/content_playback.dart';
 import '../../content/application/listener_content_providers.dart';
 import '../../content/data/models/content_response_model.dart';
 import '../../content/data/models/content_type.dart';
@@ -285,13 +287,29 @@ class _CategoryCard extends StatelessWidget {
   }
 }
 
-class _ContentCard extends StatelessWidget {
+class _ContentCard extends ConsumerStatefulWidget {
   const _ContentCard({required this.item});
 
   final ContentResponseModel item;
 
   @override
+  ConsumerState<_ContentCard> createState() => _ContentCardState();
+}
+
+class _ContentCardState extends ConsumerState<_ContentCard> {
+  bool _isLoadingStream = false;
+
+  Future<void> _play() async {
+    setState(() => _isLoadingStream = true);
+    await playContent(context: context, ref: ref, content: widget.item);
+    if (mounted) setState(() => _isLoadingStream = false);
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final item = widget.item;
+    final accent = item.contentType == ContentType.audio ? AppColors.teal : AppColors.crimson;
+
     return GestureDetector(
       onTap: () => Navigator.of(context).push(
         MaterialPageRoute(builder: (_) => ContentDetailScreen(content: item)),
@@ -336,6 +354,16 @@ class _ContentCard extends StatelessWidget {
                         right: 8,
                         child: TierBadge(label: 'PREMIUM', color: AppColors.gold),
                       ),
+                    Positioned(
+                      right: 6,
+                      bottom: 6,
+                      child: FloatingPlayButton(
+                        onPressed: _isLoadingStream ? null : _play,
+                        color: accent,
+                        isLoading: _isLoadingStream,
+                        frosted: true,
+                      ),
+                    ),
                   ],
                 ),
               ),

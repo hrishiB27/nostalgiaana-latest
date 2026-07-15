@@ -3,16 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/config/theme_config.dart';
 import '../../../core/layout/adaptive_content_wrapper.dart';
-import '../../../core/network/api_error.dart';
+import '../../../core/widgets/floating_play_button.dart';
 import '../../../core/widgets/tier_badge.dart';
-import '../../auth/application/auth_notifier.dart';
-import '../../auth/data/models/user_role.dart';
-import '../../payment/presentation/premium_upgrade_sheet.dart';
-import '../application/audio_player_notifier.dart';
-import '../data/listener_content_api.dart';
+import '../application/content_playback.dart';
 import '../data/models/content_response_model.dart';
 import '../data/models/content_type.dart';
-import 'video_player_screen.dart';
 import 'widgets/now_playing_bar.dart';
 
 /// Detail view for either a Show or an Audio. Audio plays via the
@@ -32,49 +27,10 @@ class ContentDetailScreen extends ConsumerStatefulWidget {
 class _ContentDetailScreenState extends ConsumerState<ContentDetailScreen> {
   bool _isLoadingStream = false;
 
-  bool get _isPremiumGated {
-    final role = ref.read(authNotifierProvider).user?.role;
-    return widget.content.isPremium && role == UserRole.listener;
-  }
-
   Future<void> _playNow() async {
-    final content = widget.content;
-    if (_isPremiumGated) {
-      PremiumUpgradeSheet.show(context);
-      return;
-    }
-
     setState(() => _isLoadingStream = true);
-    try {
-      final stream = await ref
-          .read(listenerContentApiProvider)
-          .getStreamUrl(content.id);
-      if (content.contentType == ContentType.show) {
-        if (mounted) {
-          Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (_) => VideoPlayerScreen(
-                streamUrl: stream.url,
-                contentId: content.id,
-                title: content.title,
-              ),
-            ),
-          );
-        }
-      } else {
-        await ref
-            .read(audioPlayerProvider.notifier)
-            .play(stream.url, contentId: content.id, title: content.title);
-      }
-    } catch (error) {
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(messageFor(error))));
-      }
-    } finally {
-      if (mounted) setState(() => _isLoadingStream = false);
-    }
+    await playContent(context: context, ref: ref, content: widget.content);
+    if (mounted) setState(() => _isLoadingStream = false);
   }
 
   @override
@@ -96,27 +52,42 @@ class _ContentDetailScreenState extends ConsumerState<ContentDetailScreen> {
                 borderRadius: BorderRadius.circular(20),
                 child: AspectRatio(
                   aspectRatio: 16 / 9,
-                  child: content.coverUrl != null
-                      ? Image.network(content.coverUrl!, fit: BoxFit.cover)
-                      : DecoratedBox(
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                              colors: [
-                                AppColors.teal.withValues(alpha: 0.35),
-                                AppColors.crimson.withValues(alpha: 0.25),
-                              ],
+                  child: Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      content.coverUrl != null
+                          ? Image.network(content.coverUrl!, fit: BoxFit.cover)
+                          : DecoratedBox(
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                  colors: [
+                                    AppColors.teal.withValues(alpha: 0.35),
+                                    AppColors.crimson.withValues(alpha: 0.25),
+                                  ],
+                                ),
+                              ),
+                              child: Center(
+                                child: Icon(
+                                  isAudio ? Icons.graphic_eq : Icons.movie_outlined,
+                                  color: AppColors.charcoal,
+                                  size: 48,
+                                ),
+                              ),
                             ),
-                          ),
-                          child: Center(
-                            child: Icon(
-                              isAudio ? Icons.graphic_eq : Icons.movie_outlined,
-                              color: AppColors.charcoal,
-                              size: 48,
-                            ),
-                          ),
+                      Positioned(
+                        right: 14,
+                        bottom: 14,
+                        child: FloatingPlayButton(
+                          onPressed: _isLoadingStream ? null : _playNow,
+                          color: accent,
+                          isLoading: _isLoadingStream,
+                          frosted: true,
                         ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
               const SizedBox(height: 20),
@@ -165,22 +136,6 @@ class _ContentDetailScreenState extends ConsumerState<ContentDetailScreen> {
                   content.description!,
                   style: Theme.of(context).textTheme.bodyMedium,
                 ),
-              const SizedBox(height: 28),
-              ElevatedButton.icon(
-                onPressed: _isLoadingStream ? null : _playNow,
-                style: ElevatedButton.styleFrom(backgroundColor: accent),
-                icon: _isLoadingStream
-                    ? const SizedBox(
-                        height: 18,
-                        width: 18,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2.2,
-                          color: Colors.white,
-                        ),
-                      )
-                    : const Icon(Icons.play_arrow),
-                label: const Text('Play Now'),
-              ),
             ],
           ),
         ),

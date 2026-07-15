@@ -50,6 +50,8 @@ class AudioPlayerState {
 class AudioPlayerNotifier extends Notifier<AudioPlayerState> {
   late final AudioPlayer _player;
 
+  static const _skipAmount = Duration(seconds: 10);
+
   @override
   AudioPlayerState build() {
     _player = AudioPlayer();
@@ -94,6 +96,17 @@ class AudioPlayerNotifier extends Notifier<AudioPlayerState> {
   Future<void> pause() => _player.pause();
 
   Future<void> seek(Duration position) => _player.seek(position);
+
+  Future<void> skipBackward() {
+    final target = _player.position - _skipAmount;
+    return _player.seek(target.isNegative ? Duration.zero : target);
+  }
+
+  Future<void> skipForward() {
+    final duration = _player.duration;
+    final target = _player.position + _skipAmount;
+    return _player.seek(duration != null && target > duration ? duration : target);
+  }
 
   Future<void> stop() async {
     await _player.stop();

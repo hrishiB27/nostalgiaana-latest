@@ -15,6 +15,7 @@ import '../../content/application/content_playback.dart';
 import '../../content/application/listener_content_providers.dart';
 import '../../content/data/models/content_response_model.dart';
 import '../../content/data/models/content_type.dart';
+import '../../content/domain/content_category.dart';
 import '../../content/presentation/content_detail_screen.dart';
 import '../../content/presentation/widgets/now_playing_bar.dart';
 import '../../payment/presentation/premium_upgrade_sheet.dart';
@@ -78,16 +79,16 @@ class _UserHomeScreenShellState extends ConsumerState<UserHomeScreenShell> {
             _CategoryCard(
               label: 'All',
               icon: Icons.apps_rounded,
-              gradient: const [AppColors.charcoal, Color(0xFF56636A)],
+              color: AppColors.charcoal,
               selected: _selectedCategoryId == null,
               onTap: () => setState(() => _selectedCategoryId = null),
             ),
-            for (final (index, category) in items.indexed) ...[
+            for (final category in items) ...[
               const SizedBox(width: 12),
               _CategoryCard(
                 label: category.name,
-                icon: _iconForCategory(category.name),
-                gradient: _gradientForIndex(index),
+                icon: contentCategoryFromName(category.name)?.icon ?? Icons.local_offer_rounded,
+                color: contentCategoryFromName(category.name)?.color ?? AppColors.charcoal,
                 selected: _selectedCategoryId == category.id,
                 onTap: () => setState(() => _selectedCategoryId = category.id),
               ),
@@ -195,52 +196,24 @@ class _UserHomeScreenShellState extends ConsumerState<UserHomeScreenShell> {
   }
 }
 
-/// Cycling set of theme-derived gradients for the category cards — each
-/// pairs a core `AppColors` tone with a lighter tint of itself so cards
-/// stay within the app's "Modern Retro" palette rather than introducing
-/// unrelated colors.
-const _categoryGradients = [
-  [AppColors.crimson, Color(0xFFE57373)],
-  [AppColors.teal, Color(0xFF4DB6AC)],
-  [AppColors.gold, Color(0xFFFFD54F)],
-  [Color(0xFF8D6E63), Color(0xFFBCAAA4)],
-];
-
-List<Color> _gradientForIndex(int index) => _categoryGradients[index % _categoryGradients.length];
-
-/// Picks an icon relevant to the category's name; falls back to a generic
-/// tag icon for anything that doesn't match a known theme.
-IconData _iconForCategory(String name) {
-  final normalized = name.toLowerCase();
-  if (normalized.contains('trivia') || normalized.contains('quiz')) return Icons.quiz_rounded;
-  if (normalized.contains('interview')) return Icons.mic_rounded;
-  if (normalized.contains('podcast')) return Icons.podcasts_rounded;
-  if (normalized.contains('song') ||
-      normalized.contains('film') ||
-      normalized.contains('music')) {
-    return Icons.music_note_rounded;
-  }
-  return Icons.local_offer_rounded;
-}
-
 class _CategoryCard extends StatelessWidget {
   const _CategoryCard({
     required this.label,
     required this.icon,
-    required this.gradient,
+    required this.color,
     required this.selected,
     required this.onTap,
   });
 
   final String label;
   final IconData icon;
-  final List<Color> gradient;
+  final Color color;
   final bool selected;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    final foreground = gradient.first == AppColors.gold ? AppColors.charcoal : Colors.white;
+    final foreground = color == AppColors.gold ? AppColors.charcoal : Colors.white;
     return GestureDetector(
       onTap: onTap,
       child: AnimatedContainer(
@@ -252,13 +225,13 @@ class _CategoryCard extends StatelessWidget {
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: gradient,
+            colors: [color, Color.lerp(color, Colors.white, 0.35)!],
           ),
           borderRadius: BorderRadius.circular(20),
           border: selected ? Border.all(color: AppColors.charcoal, width: 2.5) : null,
           boxShadow: [
             BoxShadow(
-              color: gradient.first.withValues(alpha: selected ? 0.45 : 0.2),
+              color: color.withValues(alpha: selected ? 0.45 : 0.2),
               blurRadius: selected ? 14 : 6,
               offset: const Offset(0, 6),
             ),

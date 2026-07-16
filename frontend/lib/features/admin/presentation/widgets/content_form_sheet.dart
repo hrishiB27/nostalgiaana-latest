@@ -6,6 +6,7 @@ import '../../../../core/config/theme_config.dart';
 import '../../../../core/network/api_error.dart';
 import '../../../category/application/category_providers.dart';
 import '../../../content/data/models/content_type.dart';
+import '../../../content/domain/content_category.dart';
 import '../../data/models/content_upload_request.dart';
 
 typedef ContentFormSubmit = Future<void> Function(
@@ -179,12 +180,24 @@ class _ContentFormSheetState extends ConsumerState<ContentFormSheet> {
                       style: const TextStyle(color: AppColors.charcoal),
                       items: [
                         const DropdownMenuItem<String?>(value: null, child: Text('None')),
-                        ...items.map(
-                          (category) => DropdownMenuItem<String?>(
+                        ...items.map((category) {
+                          final matched = contentCategoryFromName(category.name);
+                          return DropdownMenuItem<String?>(
                             value: category.id,
-                            child: Text(category.name),
-                          ),
-                        ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  matched?.icon ?? Icons.local_offer_rounded,
+                                  color: matched?.color ?? AppColors.charcoal,
+                                  size: 18,
+                                ),
+                                const SizedBox(width: 10),
+                                Text(category.name),
+                              ],
+                            ),
+                          );
+                        }),
                       ],
                       onChanged: (value) => setState(() => _categoryId = value),
                     ),

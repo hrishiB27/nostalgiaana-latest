@@ -14,6 +14,9 @@ public class CategoryService {
     private final CategoryRepository categoryRepository;
 
     public Category createCategory(String name, String description, User createdBy) {
+        if (!CategoryName.isOfficial(name)) {
+            throw new RuntimeException("Category must be one of the official show categories");
+        }
         if (categoryRepository.existsByName(name)) {
             throw new RuntimeException("Category already exists: " + name);
         }
@@ -37,6 +40,9 @@ public class CategoryService {
     }
 
     public Category updateCategory(UUID id, String name, String description) {
+        if (!CategoryName.isOfficial(name)) {
+            throw new RuntimeException("Category must be one of the official show categories");
+        }
         Category category = getCategoryById(id);
         category.setName(name);
         category.setDescription(description);

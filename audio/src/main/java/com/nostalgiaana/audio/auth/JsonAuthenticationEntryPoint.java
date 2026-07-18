@@ -3,7 +3,6 @@ package com.nostalgiaana.audio.auth;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.stereotype.Component;
@@ -21,12 +20,17 @@ import java.util.Map;
  * JwtAuthFilter} stashes a specific reason (suspended/unapproved) on the
  * request when it recognizes the user but rejects them; anything else
  * (missing/invalid/expired token) falls back to a generic message.
+ *
+ * <p>Owns its own {@link ObjectMapper} instead of having Spring inject one —
+ * this project's {@code spring-boot-starter-webmvc} dependency doesn't
+ * transitively expose an autoconfigured {@code ObjectMapper} bean the way
+ * {@code spring-boot-starter-web} does, and this class runs at the servlet
+ * filter level anyway, outside normal MVC dispatch.
  */
 @Component
-@RequiredArgsConstructor
 public class JsonAuthenticationEntryPoint implements AuthenticationEntryPoint {
 
-    private final ObjectMapper objectMapper;
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Override
     public void commence(HttpServletRequest request, HttpServletResponse response,

@@ -61,6 +61,21 @@ class AdminUsersNotifier extends Notifier<AdminUsersState> {
       state = state.copyWith(status: AdminUsersStatus.error, errorMessage: messageFor(error));
     }
   }
+
+  Future<void> approveUser(String id) async {
+    try {
+      await ref.read(adminUserApiProvider).approveUser(id);
+      state = state.copyWith(
+        status: AdminUsersStatus.loaded,
+        users: [
+          for (final user in state.users)
+            if (user.id == id) user.copyWith(approved: true) else user,
+        ],
+      );
+    } catch (error) {
+      state = state.copyWith(status: AdminUsersStatus.error, errorMessage: messageFor(error));
+    }
+  }
 }
 
 final adminUsersProvider = NotifierProvider<AdminUsersNotifier, AdminUsersState>(

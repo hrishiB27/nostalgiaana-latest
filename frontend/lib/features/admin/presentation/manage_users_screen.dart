@@ -81,7 +81,11 @@ class _ManageUsersScreenState extends ConsumerState<ManageUsersScreen> {
       itemCount: state.users.length,
       itemBuilder: (context, index) {
         final user = state.users[index];
-        return _UserRow(user: user, onSuspend: () => _confirmSuspend(user));
+        return _UserRow(
+          user: user,
+          onSuspend: () => _confirmSuspend(user),
+          onApprove: () => ref.read(adminUsersProvider.notifier).approveUser(user.id),
+        );
       },
     );
   }
@@ -97,10 +101,11 @@ class _ManageUsersScreenState extends ConsumerState<ManageUsersScreen> {
 }
 
 class _UserRow extends StatelessWidget {
-  const _UserRow({required this.user, required this.onSuspend});
+  const _UserRow({required this.user, required this.onSuspend, required this.onApprove});
 
   final AdminUserResponseModel user;
   final VoidCallback onSuspend;
+  final VoidCallback onApprove;
 
   @override
   Widget build(BuildContext context) {
@@ -114,7 +119,10 @@ class _UserRow extends StatelessWidget {
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(18),
           color: AppColors.panelCream,
-          border: Border.all(color: AppColors.charcoal.withValues(alpha: 0.08)),
+          border: Border.all(
+            color: user.approved ? AppColors.charcoal.withValues(alpha: 0.08) : AppColors.crimson,
+            width: user.approved ? 1 : 1.5,
+          ),
         ),
         child: Row(
           children: [
@@ -153,6 +161,18 @@ class _UserRow extends StatelessWidget {
                     style: Theme.of(context).textTheme.bodySmall,
                     overflow: TextOverflow.ellipsis,
                   ),
+                  if (!user.approved) ...[
+                    const SizedBox(height: 6),
+                    const Text(
+                      'PENDING APPROVAL',
+                      style: TextStyle(
+                        color: AppColors.crimson,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 11,
+                        letterSpacing: 1,
+                      ),
+                    ),
+                  ],
                   if (!user.isActive) ...[
                     const SizedBox(height: 6),
                     const Text(
@@ -168,6 +188,12 @@ class _UserRow extends StatelessWidget {
                 ],
               ),
             ),
+            if (!user.approved)
+              IconButton(
+                onPressed: onApprove,
+                icon: const Icon(Icons.check_circle_outline_rounded, color: AppColors.crimson),
+                tooltip: 'Approve account',
+              ),
             if (user.isActive)
               IconButton(
                 onPressed: onSuspend,

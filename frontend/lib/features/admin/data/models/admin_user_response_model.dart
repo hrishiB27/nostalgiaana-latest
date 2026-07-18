@@ -13,6 +13,7 @@ class AdminUserResponseModel {
     required this.role,
     required this.membershipTier,
     required this.isActive,
+    required this.approved,
     required this.createdAt,
   });
 
@@ -27,6 +28,7 @@ class AdminUserResponseModel {
   final UserRole role;
   final String membershipTier;
   final bool isActive;
+  final bool approved;
   final DateTime createdAt;
 
   String get displayName {
@@ -45,11 +47,12 @@ class AdminUserResponseModel {
       role: UserRole.fromJson(json['role'] as String),
       membershipTier: json['membershipTier'] as String,
       isActive: json['isActive'] as bool,
+      approved: json['approved'] as bool,
       createdAt: DateTime.parse(json['createdAt'] as String),
     );
   }
 
-  AdminUserResponseModel copyWith({bool? isActive}) {
+  AdminUserResponseModel copyWith({bool? isActive, bool? approved}) {
     return AdminUserResponseModel(
       id: id,
       firstName: firstName,
@@ -60,6 +63,7 @@ class AdminUserResponseModel {
       role: role,
       membershipTier: membershipTier,
       isActive: isActive ?? this.isActive,
+      approved: approved ?? this.approved,
       createdAt: createdAt,
     );
   }

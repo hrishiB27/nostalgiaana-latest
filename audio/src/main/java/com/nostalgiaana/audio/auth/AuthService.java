@@ -110,7 +110,7 @@ public class AuthService {
         }
 
         if (!user.getApproved()) {
-            throw new UserNotApprovedException("You have not been approved yet");
+            throw new UserNotApprovedException("waiting for approval for this mobile number");
         }
 
         String otp = generateOtp();

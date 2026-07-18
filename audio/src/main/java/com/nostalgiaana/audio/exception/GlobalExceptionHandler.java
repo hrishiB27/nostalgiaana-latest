@@ -26,7 +26,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(UserNotApprovedException.class)
     public ResponseEntity<Map<String, Object>> handleUserNotApproved(UserNotApprovedException ex) {
         Map<String, Object> error = new HashMap<>();
-        error.put("error", "You have not been approved yet");
+        error.put("error", ex.getMessage());
         error.put("status", HttpStatus.FORBIDDEN.value());
         error.put("timestamp", LocalDateTime.now().toString());
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(error);

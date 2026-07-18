@@ -21,6 +21,10 @@ class AdminUserApi {
   Future<void> banUser(String id) async {
     await _dio.delete('/admin/users/$id');
   }
+
+  Future<void> approveUser(String id) async {
+    await _dio.patch('/admin/users/$id/approve');
+  }
 }
 
 final adminUserApiProvider = Provider<AdminUserApi>((ref) {

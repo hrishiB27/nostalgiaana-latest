@@ -12,7 +12,7 @@ import '../../core/widgets/auth_form_card.dart';
 import '../widgets/auth_secondary_button.dart';
 import '../widgets/retro_doodle_background.dart';
 
-const _pendingApprovalMessage = 'You have not been approved yet';
+const _pendingApprovalMessage = 'waiting for approval for this mobile number';
 
 /// Login form reached from the landing screen's "Login" button. Unlike
 /// [CreateAccountScreen], login has a real OTP step on the backend

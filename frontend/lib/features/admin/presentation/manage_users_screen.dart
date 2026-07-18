@@ -121,6 +121,16 @@ class _ManageUsersScreenState extends ConsumerState<ManageUsersScreen> {
 
   @override
   Widget build(BuildContext context) {
+    ref.listen<AdminUsersState>(adminUsersProvider, (previous, next) {
+      if (next.status == AdminUsersStatus.error &&
+          next.errorMessage != null &&
+          next.users.isNotEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(next.errorMessage!)),
+        );
+      }
+    });
+
     final state = ref.watch(adminUsersProvider);
     return Scaffold(
       appBar: widget.showAppBar ? AppBar(title: const Text('Manage Users')) : null,

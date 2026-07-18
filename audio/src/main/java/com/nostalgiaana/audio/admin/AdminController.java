@@ -102,4 +102,16 @@ public class AdminController {
         adminService.approveUser(id);
         return ResponseEntity.noContent().build();
     }
+
+    @PatchMapping("/users/{id}/unsuspend")
+    public ResponseEntity<Void> unsuspendUser(@PathVariable UUID id) {
+        adminService.unsuspendUser(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @DeleteMapping("/users/{id}/deny")
+    public ResponseEntity<Void> denyUser(@PathVariable UUID id) {
+        adminService.denyUser(id);
+        return ResponseEntity.noContent().build();
+    }
 }

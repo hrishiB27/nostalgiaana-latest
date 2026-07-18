@@ -25,6 +25,15 @@ class AdminUserApi {
   Future<void> approveUser(String id) async {
     await _dio.patch('/admin/users/$id/approve');
   }
+
+  Future<void> unsuspendUser(String id) async {
+    await _dio.patch('/admin/users/$id/unsuspend');
+  }
+
+  // Hard delete: only valid for a still-pending (unapproved) user.
+  Future<void> denyUser(String id) async {
+    await _dio.delete('/admin/users/$id/deny');
+  }
 }
 
 final adminUserApiProvider = Provider<AdminUserApi>((ref) {

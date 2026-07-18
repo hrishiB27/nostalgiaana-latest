@@ -84,6 +84,22 @@ public class AdminService {
         userService.save(user);
     }
 
+    public void unsuspendUser(UUID id) {
+        User user = userService.findById(id)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        user.setIsActive(true);
+        userService.save(user);
+    }
+
+    public void denyUser(UUID id) {
+        User user = userService.findById(id)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        if (user.getApproved()) {
+            throw new RuntimeException("Cannot deny an already-approved user");
+        }
+        userService.delete(user);
+    }
+
     private AdminUserResponse toAdminUserResponse(User user) {
         return AdminUserResponse.builder()
                 .id(user.getId())

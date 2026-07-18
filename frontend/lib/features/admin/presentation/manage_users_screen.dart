@@ -52,6 +52,33 @@ class _ManageUsersScreenState extends ConsumerState<ManageUsersScreen> {
     }
   }
 
+  Future<void> _confirmDeny(AdminUserResponseModel user) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Deny this account?'),
+        content: Text(
+          "${user.displayName}'s registration will be permanently deleted. "
+          'This cannot be undone.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            style: TextButton.styleFrom(foregroundColor: AppColors.crimson),
+            child: const Text('Deny'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed == true) {
+      await ref.read(adminUsersProvider.notifier).denyUser(user.id);
+    }
+  }
+
   Widget _buildBody(AdminUsersState state) {
     if (state.users.isEmpty) {
       if (state.status == AdminUsersStatus.error) {
@@ -85,6 +112,8 @@ class _ManageUsersScreenState extends ConsumerState<ManageUsersScreen> {
           user: user,
           onSuspend: () => _confirmSuspend(user),
           onApprove: () => ref.read(adminUsersProvider.notifier).approveUser(user.id),
+          onDeny: () => _confirmDeny(user),
+          onUnsuspend: () => ref.read(adminUsersProvider.notifier).unsuspendUser(user.id),
         );
       },
     );
@@ -101,11 +130,19 @@ class _ManageUsersScreenState extends ConsumerState<ManageUsersScreen> {
 }
 
 class _UserRow extends StatelessWidget {
-  const _UserRow({required this.user, required this.onSuspend, required this.onApprove});
+  const _UserRow({
+    required this.user,
+    required this.onSuspend,
+    required this.onApprove,
+    required this.onDeny,
+    required this.onUnsuspend,
+  });
 
   final AdminUserResponseModel user;
   final VoidCallback onSuspend;
   final VoidCallback onApprove;
+  final VoidCallback onDeny;
+  final VoidCallback onUnsuspend;
 
   @override
   Widget build(BuildContext context) {
@@ -172,8 +209,7 @@ class _UserRow extends StatelessWidget {
                         letterSpacing: 1,
                       ),
                     ),
-                  ],
-                  if (!user.isActive) ...[
+                  ] else if (!user.isActive) ...[
                     const SizedBox(height: 6),
                     const Text(
                       'SUSPENDED',
@@ -188,17 +224,28 @@ class _UserRow extends StatelessWidget {
                 ],
               ),
             ),
-            if (!user.approved)
+            if (!user.approved) ...[
               IconButton(
                 onPressed: onApprove,
                 icon: const Icon(Icons.check_circle_outline_rounded, color: AppColors.crimson),
                 tooltip: 'Approve account',
               ),
-            if (user.isActive)
+              IconButton(
+                onPressed: onDeny,
+                icon: const Icon(Icons.cancel_outlined, color: AppColors.crimson),
+                tooltip: 'Deny account',
+              ),
+            ] else if (user.isActive)
               IconButton(
                 onPressed: onSuspend,
                 icon: const Icon(Icons.block, color: AppColors.crimson),
                 tooltip: 'Suspend account',
+              )
+            else
+              IconButton(
+                onPressed: onUnsuspend,
+                icon: const Icon(Icons.lock_open_rounded, color: AppColors.crimson),
+                tooltip: 'Unsuspend account',
               ),
           ],
         ),

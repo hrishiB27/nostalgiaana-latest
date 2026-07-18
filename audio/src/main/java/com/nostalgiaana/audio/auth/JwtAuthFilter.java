@@ -54,14 +54,20 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
         User user = userService.findById(userId).orElse(null);
 
-        if (user != null && user.getIsActive() && user.getApproved()) {
-            var authToken = new UsernamePasswordAuthenticationToken(
-                    user,
-                    null,
-                    List.of(new SimpleGrantedAuthority("ROLE_" + role))
-            );
-            authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-            SecurityContextHolder.getContext().setAuthentication(authToken);
+        if (user != null) {
+            if (!user.getIsActive()) {
+                request.setAttribute("authRejectionReason", "Account is suspended");
+            } else if (!user.getApproved()) {
+                request.setAttribute("authRejectionReason", "waiting for approval for this mobile number");
+            } else {
+                var authToken = new UsernamePasswordAuthenticationToken(
+                        user,
+                        null,
+                        List.of(new SimpleGrantedAuthority("ROLE_" + role))
+                );
+                authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                SecurityContextHolder.getContext().setAuthentication(authToken);
+            }
         }
 
         filterChain.doFilter(request, response);

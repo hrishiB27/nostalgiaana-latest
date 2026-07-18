@@ -1,5 +1,6 @@
 package com.nostalgiaana.audio.config;
 
+import com.nostalgiaana.audio.auth.JsonAuthenticationEntryPoint;
 import com.nostalgiaana.audio.auth.JwtAuthFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -26,6 +27,7 @@ import java.util.List;
 public class SecurityConfig {
 
     private final JwtAuthFilter jwtAuthFilter;
+    private final JsonAuthenticationEntryPoint jsonAuthenticationEntryPoint;
 
     // Only exercised by a browser client (Flutter web) — native
     // Android/iOS/desktop builds never hit CORS at all. Comma-separated so
@@ -59,6 +61,7 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable())
             .sessionManagement(session ->
                 session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+            .exceptionHandling(handling -> handling.authenticationEntryPoint(jsonAuthenticationEntryPoint))
             .authorizeHttpRequests(auth -> auth
     .requestMatchers("/api/auth/**").permitAll()
     .requestMatchers("/api/categories").permitAll()

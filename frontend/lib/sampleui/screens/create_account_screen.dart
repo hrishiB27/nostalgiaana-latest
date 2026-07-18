@@ -4,13 +4,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../features/auth/application/auth_notifier.dart';
 import '../../features/auth/application/auth_state.dart';
 import '../../features/auth/data/models/signup_request.dart';
-import '../../features/auth/presentation/post_auth_router.dart';
 import '../../core/config/theme_config.dart';
 import '../../core/data/countries.dart';
 import '../../core/widgets/auth_form_card.dart';
 import '../../core/widgets/nostalgiaana_brand_text.dart';
 import '../widgets/auth_primary_button.dart';
 import '../widgets/retro_doodle_background.dart';
+import 'pending_approval_screen.dart';
 
 const _fieldDecoration = InputDecoration(isDense: true);
 
@@ -75,7 +75,10 @@ class _CreateAccountScreenState extends ConsumerState<CreateAccountScreen> {
   Widget build(BuildContext context) {
     ref.listen<AuthState>(authNotifierProvider, (previous, next) {
       if (next.status == AuthStatus.authenticated && next.user != null) {
-        routeToDashboard(context, next.user!);
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(builder: (_) => const PendingApprovalScreen()),
+          (route) => false,
+        );
       }
     });
 

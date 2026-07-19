@@ -1,4 +1,4 @@
-package com.nostalgiaana.frontend
+package com.nostalgiaana.app
 
 import io.flutter.embedding.android.FlutterActivity
 

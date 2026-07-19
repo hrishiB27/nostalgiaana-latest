@@ -28,6 +28,35 @@ final dioProvider = Provider<Dio>((ref) {
         }
         handler.next(options);
       },
+      // Guards against a narrow race right after login: the dashboard's
+      // first content requests can fire in the same frame the JWT is
+      // persisted, and secure-storage's write isn't always guaranteed
+      // visible to an immediate read-back yet on every platform. A single
+      // retry with a freshly re-read token resolves that without masking a
+      // genuinely expired/invalid session — a repeat 401 just passes
+      // through to the caller as normal. Safe for every HTTP method: a 401
+      // here comes from JwtAuthFilter/JsonAuthenticationEntryPoint at the
+      // Spring Security filter level, before the request ever reaches a
+      // controller, so no business logic (and no mutation) ran yet.
+      onError: (error, handler) async {
+        final alreadyRetried = error.requestOptions.extra['retriedAfter401'] == true;
+        if (error.response?.statusCode == 401 && !alreadyRetried) {
+          final token = await secureStorage.getAccessToken();
+          if (token != null) {
+            try {
+              final retryOptions = error.requestOptions
+                ..extra['retriedAfter401'] = true
+                ..headers['Authorization'] = 'Bearer $token';
+              final response = await dio.fetch(retryOptions);
+              handler.resolve(response);
+              return;
+            } catch (_) {
+              // Fall through — surface the original error below.
+            }
+          }
+        }
+        handler.next(error);
+      },
     ),
   );
 

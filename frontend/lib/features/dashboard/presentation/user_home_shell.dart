@@ -8,6 +8,7 @@ import '../../../core/widgets/floating_play_button.dart';
 import '../../../core/widgets/nostalgiaana_brand_text.dart';
 import '../../../sampleui/screens/auth_landing_screen.dart';
 import '../../auth/application/auth_notifier.dart';
+import '../../auth/application/auth_state.dart';
 import '../../category/application/category_providers.dart';
 import '../../content/application/content_playback.dart';
 import '../../content/application/listener_content_providers.dart';
@@ -104,7 +105,11 @@ class _UserHomeScreenShellState extends ConsumerState<UserHomeScreenShell> {
     );
   }
 
-  Widget _buildShelf(String title, AsyncValue<List<ContentResponseModel>> asyncItems) {
+  Widget _buildShelf(
+    String title,
+    AsyncValue<List<ContentResponseModel>> asyncItems,
+    AuthStatus authStatus,
+  ) {
     return Padding(
       padding: const EdgeInsets.only(top: 24),
       child: Column(
@@ -133,16 +138,29 @@ class _UserHomeScreenShellState extends ConsumerState<UserHomeScreenShell> {
                       itemBuilder: (context, index) => _ContentCard(item: items[index]),
                     ),
               loading: () => const Center(child: CircularProgressIndicator(color: AppColors.teal)),
-              error: (error, stackTrace) => Center(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: Text(
-                    messageFor(error),
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(color: AppColors.gold),
-                  ),
-                ),
-              ),
+              // A shelf load can transiently 401 in the same frame the
+              // dashboard is pushed right after login, before the dio
+              // interceptor's retry (see dio_client.dart) has resolved —
+              // show a spinner rather than a raw error while auth is still
+              // settling, instead of the real error text underneath.
+              error: (error, stackTrace) => authStatus == AuthStatus.loading
+                  ? const Center(
+                      child: SizedBox(
+                        height: 18,
+                        width: 18,
+                        child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.teal),
+                      ),
+                    )
+                  : Center(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        child: Text(
+                          messageFor(error),
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(color: AppColors.gold),
+                        ),
+                      ),
+                    ),
             ),
           ),
         ],
@@ -154,6 +172,7 @@ class _UserHomeScreenShellState extends ConsumerState<UserHomeScreenShell> {
   Widget build(BuildContext context) {
     final showsAsync = ref.watch(listenerShowsProvider(_selectedCategoryId));
     final audiosAsync = ref.watch(listenerAudiosProvider(_selectedCategoryId));
+    final authStatus = ref.watch(authNotifierProvider).status;
 
     return Scaffold(
       appBar: AppBar(
@@ -175,8 +194,8 @@ class _UserHomeScreenShellState extends ConsumerState<UserHomeScreenShell> {
             children: [
               const SizedBox(height: 12),
               _buildCategoryChips(),
-              _buildShelf('Shows', showsAsync),
-              _buildShelf('Audios', audiosAsync),
+              _buildShelf('Shows', showsAsync, authStatus),
+              _buildShelf('Audios', audiosAsync, authStatus),
               const SizedBox(height: 24),
             ],
           ),

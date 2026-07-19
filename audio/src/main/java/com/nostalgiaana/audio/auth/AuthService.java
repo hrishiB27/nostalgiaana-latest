@@ -5,7 +5,9 @@ import com.nostalgiaana.audio.auth.dto.LoginRequest;
 import com.nostalgiaana.audio.auth.dto.OtpChallengeResponse;
 import com.nostalgiaana.audio.auth.dto.SignupRequest;
 import com.nostalgiaana.audio.auth.dto.VerifyOtpRequest;
+import com.nostalgiaana.audio.exception.AccountSuspendedException;
 import com.nostalgiaana.audio.exception.UserNotApprovedException;
+import com.nostalgiaana.audio.sms.SmsService;
 import com.nostalgiaana.audio.storage.StorageService;
 import com.nostalgiaana.audio.user.User;
 import com.nostalgiaana.audio.user.UserRole;
@@ -27,6 +29,7 @@ import java.util.UUID;
 public class AuthService {
 
     private static final Duration OTP_TTL = Duration.ofMinutes(5);
+    private static final Duration OTP_REQUEST_COOLDOWN = Duration.ofSeconds(30);
     private static final int MAX_OTP_ATTEMPTS = 5;
     private static final SecureRandom SECURE_RANDOM = new SecureRandom();
 
@@ -35,6 +38,7 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final StringRedisTemplate redisTemplate;
     private final StorageService storageService;
+    private final SmsService smsService;
 
     public AuthResponse signup(SignupRequest request, MultipartFile profilePicture) {
 
@@ -106,18 +110,24 @@ public class AuthService {
         }
 
         if (!user.getIsActive()) {
-            throw new RuntimeException("Account is suspended");
+            throw new AccountSuspendedException("Account is suspended");
         }
 
         if (!user.getApproved()) {
             throw new UserNotApprovedException("waiting for approval for this mobile number");
         }
 
+        if (Boolean.TRUE.equals(redisTemplate.hasKey(otpCooldownKey(identifier)))) {
+            throw new RuntimeException("Please wait before requesting another OTP");
+        }
+
         String otp = generateOtp();
         redisTemplate.opsForValue().set(otpKey(identifier), otp, OTP_TTL);
         redisTemplate.delete(otpAttemptsKey(identifier));
+        redisTemplate.opsForValue().set(otpCooldownKey(identifier), "1", OTP_REQUEST_COOLDOWN);
 
-        log.info("[SMS/WhatsApp OTP Fallback] Sending OTP: {} to phone number: {}", otp, identifier);
+        log.debug("[SMS/WhatsApp OTP Fallback] Sending OTP: {} to phone number: {}", otp, identifier);
+        smsService.sendOtp(SmsService.toE164(user.getCountry(), identifier), otp);
 
         return OtpChallengeResponse.builder()
                 .message("OTP sent")
@@ -153,6 +163,14 @@ public class AuthService {
         User user = userService.findByIdentifier(identifier)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
+        if (!user.getIsActive()) {
+            throw new AccountSuspendedException("Account is suspended");
+        }
+
+        if (!user.getApproved()) {
+            throw new UserNotApprovedException("waiting for approval for this mobile number");
+        }
+
         String accessToken = jwtService.generateAccessToken(
                 user.getId(),
                 user.getRole().name()
@@ -182,6 +200,10 @@ public class AuthService {
 
     private String otpAttemptsKey(String identifier) {
         return "otp:attempts:" + identifier;
+    }
+
+    private String otpCooldownKey(String identifier) {
+        return "otp:cooldown:" + identifier;
     }
 
     private String extensionOf(String originalFilename) {

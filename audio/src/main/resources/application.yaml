@@ -40,17 +40,6 @@ spring:
     # creates users/categories/content), breaking every later migration.
     baseline-version: 0
 
-  data:
-    redis:
-      host: ${REDIS_HOST:localhost}
-      port: ${REDIS_PORT:6379}
-      password: ${REDIS_PASSWORD:}
-      # Upstash (and most managed Redis) require TLS on the standard
-      # Redis-protocol port; local/plain Redis does not support it, so
-      # this must stay opt-in rather than always-on.
-      ssl:
-        enabled: ${REDIS_SSL:false}
-
   servlet:
     multipart:
       max-file-size: 2GB
@@ -111,11 +100,6 @@ razorpay:
   key-id: rzp_test_placeholder
   key-secret: placeholder-secret
   webhook-secret: placeholder-webhook-secret
-
-twilio:
-  account-sid: ${TWILIO_ACCOUNT_SID:placeholder-account-sid}
-  auth-token: ${TWILIO_AUTH_TOKEN:placeholder-auth-token}
-  from-number: ${TWILIO_FROM_NUMBER:+10000000000}
 
 admin:
   bootstrap:

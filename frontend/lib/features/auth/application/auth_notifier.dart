@@ -12,10 +12,10 @@ import '../data/models/signup_request.dart';
 import '../domain/authenticated_user.dart';
 import 'auth_state.dart';
 
-/// Drives the login -> OTP -> authenticated flow described in
-/// `audio/CLAUDE.md`'s Auth section. JWTs are persisted to secure storage
-/// as soon as OTP verification succeeds; nothing else needs to touch them
-/// directly because [dioProvider] reads them back on every request.
+/// Drives the login -> authenticated flow described in `audio/CLAUDE.md`'s
+/// Auth section. JWTs are persisted to secure storage as soon as the
+/// password check succeeds; nothing else needs to touch them directly
+/// because [dioProvider] reads them back on every request.
 class AuthNotifier extends Notifier<AuthState> {
   @override
   AuthState build() => const AuthState();
@@ -41,35 +41,9 @@ class AuthNotifier extends Notifier<AuthState> {
   Future<void> login({required String identifier, required String password}) async {
     state = state.copyWith(status: AuthStatus.loading);
     try {
-      final challenge = await ref.read(authApiProvider).login(
+      final response = await ref.read(authApiProvider).login(
             identifier: identifier,
             password: password,
-          );
-      state = AuthState(
-        status: AuthStatus.otpRequired,
-        otpIdentifier: challenge.identifier,
-        otpExpiresInSeconds: challenge.expiresInSeconds,
-      );
-    } catch (error) {
-      state = state.copyWith(status: AuthStatus.error, errorMessage: messageFor(error));
-    }
-  }
-
-  Future<void> verifyOtp(String otp) async {
-    final identifier = state.otpIdentifier;
-    if (identifier == null) {
-      state = state.copyWith(
-        status: AuthStatus.error,
-        errorMessage: 'Start the login flow again before entering an OTP.',
-      );
-      return;
-    }
-
-    state = state.copyWith(status: AuthStatus.loading);
-    try {
-      final response = await ref.read(authApiProvider).verifyOtp(
-            identifier: identifier,
-            otp: otp,
           );
       await ref.read(secureStorageProvider).saveTokens(
             accessToken: response.accessToken,
@@ -99,13 +73,6 @@ class AuthNotifier extends Notifier<AuthState> {
     ref.invalidate(adminAudiosProvider);
     ref.invalidate(adminUsersProvider);
     state = const AuthState(status: AuthStatus.unauthenticated);
-  }
-
-  /// Drops back to phase 1 (e.g. user backs out of the OTP screen, or
-  /// switches between the Login and Sign Up layouts) without touching
-  /// stored tokens.
-  void reset() {
-    state = const AuthState();
   }
 
   /// Re-syncs `role`/`membershipStatus` from `GET /api/user/me` without a

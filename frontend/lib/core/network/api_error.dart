@@ -1,7 +1,7 @@
 import 'package:dio/dio.dart';
 
 // The backend's GlobalExceptionHandler wraps every business-rule failure
-// (bad password, wrong OTP, etc.) as {"error": "<message>", ...} with a 400.
+// (bad password, unapproved account, etc.) as {"error": "<message>", ...} with a 400.
 String messageFor(Object error) {
   if (error is DioException) {
     final data = error.response?.data;

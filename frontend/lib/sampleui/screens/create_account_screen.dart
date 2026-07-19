@@ -15,9 +15,8 @@ import 'pending_approval_screen.dart';
 const _fieldDecoration = InputDecoration(isDense: true);
 
 /// Signup form reached from the landing screen's "Create Account" button.
-/// Signup has no OTP step on the backend — `AuthNotifier.signup()` goes
-/// straight to `AuthStatus.authenticated` on success, so this screen has
-/// only one phase, unlike [LoginScreen].
+/// `AuthNotifier.signup()` goes straight to `AuthStatus.authenticated` on
+/// success — same single-phase shape as [LoginScreen].
 ///
 /// Fields are paired into rows and tightly spaced (`isDense` decorations,
 /// small gaps) so the whole form fits one screen without scrolling on most

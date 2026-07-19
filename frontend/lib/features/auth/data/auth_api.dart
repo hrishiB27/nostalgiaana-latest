@@ -6,11 +6,10 @@ import 'package:http_parser/http_parser.dart';
 
 import '../../../core/network/dio_client.dart';
 import 'models/auth_response_model.dart';
-import 'models/otp_challenge_response.dart';
 import 'models/signup_request.dart';
 
 /// Thin wrapper over the `/api/auth/**` endpoints. No state lives here —
-/// see [AuthNotifier] for the stateful login/OTP flow built on top of this.
+/// see [AuthNotifier] for the stateful login flow built on top of this.
 class AuthApi {
   const AuthApi(this._dio);
 
@@ -34,24 +33,13 @@ class AuthApi {
     return AuthResponseModel.fromJson(response.data!);
   }
 
-  Future<OtpChallengeResponse> login({
+  Future<AuthResponseModel> login({
     required String identifier,
     required String password,
   }) async {
     final response = await _dio.post<Map<String, dynamic>>(
       '/auth/login',
       data: {'identifier': identifier, 'password': password},
-    );
-    return OtpChallengeResponse.fromJson(response.data!);
-  }
-
-  Future<AuthResponseModel> verifyOtp({
-    required String identifier,
-    required String otp,
-  }) async {
-    final response = await _dio.post<Map<String, dynamic>>(
-      '/auth/verify-otp',
-      data: {'identifier': identifier, 'otp': otp},
     );
     return AuthResponseModel.fromJson(response.data!);
   }

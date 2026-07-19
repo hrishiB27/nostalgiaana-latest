@@ -2,8 +2,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 /// Wraps [FlutterSecureStorage] for the two JWTs the backend issues on
-/// `/api/auth/verify-otp`. Nothing else in the app should touch token
-/// storage directly.
+/// `/api/auth/login`. Nothing else in the app should touch token storage
+/// directly.
 class SecureStorageService {
   const SecureStorageService(this._storage);
 

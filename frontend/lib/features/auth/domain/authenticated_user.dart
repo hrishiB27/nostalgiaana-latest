@@ -2,7 +2,7 @@ import '../../user/data/models/user_profile_model.dart';
 import '../data/models/auth_response_model.dart';
 import '../data/models/user_role.dart';
 
-/// The logged-in user, as held in [AuthState] once OTP verification succeeds.
+/// The logged-in user, as held in [AuthState] once login succeeds.
 class AuthenticatedUser {
   const AuthenticatedUser({
     required this.id,

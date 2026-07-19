@@ -17,9 +17,9 @@ import '../../content/domain/content_category.dart';
 import '../../content/presentation/content_detail_screen.dart';
 import '../../content/presentation/widgets/now_playing_bar.dart';
 
-/// Home shell a regular (LISTENER/PREMIUM) user lands on after OTP
-/// verification — a category filter row plus two horizontally scrolling
-/// shelves (Shows, Audios), both refetched whenever the selected category
+/// Home shell a regular (LISTENER/PREMIUM) user lands on after login — a
+/// category filter row plus two horizontally scrolling shelves (Shows,
+/// Audios), both refetched whenever the selected category
 /// changes (`null` = "All").
 class UserHomeScreenShell extends ConsumerStatefulWidget {
   const UserHomeScreenShell({super.key});

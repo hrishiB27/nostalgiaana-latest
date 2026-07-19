@@ -10,7 +10,7 @@ import '../../admin/presentation/manage_shows_screen.dart';
 import '../../admin/presentation/manage_users_screen.dart';
 import '../../auth/application/auth_notifier.dart';
 
-/// Management shell an ADMIN lands on after OTP verification. "Manage
+/// Management shell an ADMIN lands on after login. "Manage
 /// Shows"/"Manage Audios" still route to placeholder screens — wiring them
 /// to `/api/admin/shows`/`/api/admin/audios` is a follow-up once the admin
 /// content upload flow is built. "Manage Users" is fully wired to

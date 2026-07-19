@@ -1,6 +1,6 @@
 import 'user_role.dart';
 
-/// Response body of `POST /api/auth/verify-otp` (`AuthResponse` on the backend).
+/// Response body of `POST /api/auth/login` (`AuthResponse` on the backend).
 class AuthResponseModel {
   const AuthResponseModel({
     required this.accessToken,

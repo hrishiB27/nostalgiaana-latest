@@ -2,9 +2,7 @@ package com.nostalgiaana.audio.auth;
 
 import com.nostalgiaana.audio.auth.dto.AuthResponse;
 import com.nostalgiaana.audio.auth.dto.LoginRequest;
-import com.nostalgiaana.audio.auth.dto.OtpChallengeResponse;
 import com.nostalgiaana.audio.auth.dto.SignupRequest;
-import com.nostalgiaana.audio.auth.dto.VerifyOtpRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -26,12 +24,7 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<OtpChallengeResponse> login(@Valid @RequestBody LoginRequest request) {
+    public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request) {
         return ResponseEntity.ok(authService.login(request));
-    }
-
-    @PostMapping("/verify-otp")
-    public ResponseEntity<AuthResponse> verifyOtp(@Valid @RequestBody VerifyOtpRequest request) {
-        return ResponseEntity.ok(authService.verifyOtp(request));
     }
 }

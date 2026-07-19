@@ -6,10 +6,8 @@ import '../../../core/layout/adaptive_content_wrapper.dart';
 import '../../../core/network/api_error.dart';
 import '../../../core/widgets/floating_play_button.dart';
 import '../../../core/widgets/nostalgiaana_brand_text.dart';
-import '../../../core/widgets/tier_badge.dart';
 import '../../../sampleui/screens/auth_landing_screen.dart';
 import '../../auth/application/auth_notifier.dart';
-import '../../auth/data/models/user_role.dart';
 import '../../category/application/category_providers.dart';
 import '../../content/application/content_playback.dart';
 import '../../content/application/listener_content_providers.dart';
@@ -18,7 +16,6 @@ import '../../content/data/models/content_type.dart';
 import '../../content/domain/content_category.dart';
 import '../../content/presentation/content_detail_screen.dart';
 import '../../content/presentation/widgets/now_playing_bar.dart';
-import '../../payment/presentation/premium_upgrade_sheet.dart';
 
 /// Home shell a regular (LISTENER/PREMIUM) user lands on after OTP
 /// verification — a category filter row plus two horizontally scrolling
@@ -157,7 +154,6 @@ class _UserHomeScreenShellState extends ConsumerState<UserHomeScreenShell> {
   Widget build(BuildContext context) {
     final showsAsync = ref.watch(listenerShowsProvider(_selectedCategoryId));
     final audiosAsync = ref.watch(listenerAudiosProvider(_selectedCategoryId));
-    final isListener = ref.watch(authNotifierProvider).user?.role == UserRole.listener;
 
     return Scaffold(
       appBar: AppBar(
@@ -165,12 +161,6 @@ class _UserHomeScreenShellState extends ConsumerState<UserHomeScreenShell> {
           style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
         ),
         actions: [
-          if (isListener)
-            IconButton(
-              onPressed: () => PremiumUpgradeSheet.show(context),
-              icon: const Icon(Icons.workspace_premium, color: AppColors.gold),
-              tooltip: 'Go Premium',
-            ),
           IconButton(
             onPressed: _logout,
             icon: const Icon(Icons.logout, color: AppColors.charcoal),
@@ -321,12 +311,6 @@ class _ContentCardState extends ConsumerState<_ContentCard> {
                               ),
                             ),
                           ),
-                    if (item.isPremium)
-                      const Positioned(
-                        top: 8,
-                        right: 8,
-                        child: TierBadge(label: 'PREMIUM', color: AppColors.gold),
-                      ),
                     Positioned(
                       right: 6,
                       bottom: 6,

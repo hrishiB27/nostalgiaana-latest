@@ -36,7 +36,10 @@ class _ContentFormSheetState extends ConsumerState<ContentFormSheet> {
   final _speakerController = TextEditingController();
 
   String? _categoryId;
-  bool _isPremium = false;
+  // No UI control to set this for MVP — new uploads are always non-premium;
+  // ContentUploadRequest still requires the field, so it stays explicit here
+  // rather than being dropped from the request entirely.
+  final bool _isPremium = false;
   PlatformFile? _media;
   PlatformFile? _thumbnail;
   bool _mediaMissing = false;
@@ -206,18 +209,6 @@ class _ContentFormSheetState extends ConsumerState<ContentFormSheet> {
                       'Could not load categories — you can still upload without one.',
                       style: TextStyle(color: AppColors.charcoal.withValues(alpha: 0.6), fontSize: 12),
                     ),
-                  ),
-                  const SizedBox(height: 16),
-                  SwitchListTile(
-                    contentPadding: EdgeInsets.zero,
-                    title: const Text('Premium content', style: TextStyle(color: AppColors.charcoal)),
-                    subtitle: Text(
-                      _isPremium ? 'Only PREMIUM/ADMIN accounts can stream this' : 'Free for all listeners',
-                      style: TextStyle(color: AppColors.charcoal.withValues(alpha: 0.55)),
-                    ),
-                    value: _isPremium,
-                    activeThumbColor: AppColors.gold,
-                    onChanged: (value) => setState(() => _isPremium = value),
                   ),
                   const SizedBox(height: 8),
                   _FilePickerRow(

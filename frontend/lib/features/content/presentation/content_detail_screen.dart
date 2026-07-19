@@ -4,7 +4,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/config/theme_config.dart';
 import '../../../core/layout/adaptive_content_wrapper.dart';
 import '../../../core/widgets/floating_play_button.dart';
-import '../../../core/widgets/tier_badge.dart';
 import '../application/content_playback.dart';
 import '../data/models/content_response_model.dart';
 import '../data/models/content_type.dart';
@@ -91,22 +90,11 @@ class _ContentDetailScreenState extends ConsumerState<ContentDetailScreen> {
                 ),
               ),
               const SizedBox(height: 20),
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(
-                    child: Text(
-                      content.title,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: Theme.of(context).textTheme.headlineMedium,
-                    ),
-                  ),
-                  if (content.isPremium) ...[
-                    const SizedBox(width: 8),
-                    const TierBadge(label: 'PREMIUM', color: AppColors.gold),
-                  ],
-                ],
+              Text(
+                content.title,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: Theme.of(context).textTheme.headlineMedium,
               ),
               if (content.speaker != null) ...[
                 const SizedBox(height: 6),

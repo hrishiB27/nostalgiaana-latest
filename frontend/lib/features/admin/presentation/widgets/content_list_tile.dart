@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/config/theme_config.dart';
-import '../../../../core/widgets/tier_badge.dart';
 import '../../data/models/content_detail_response_model.dart';
 
 /// One row on the Manage Shows / Manage Audios listings. Shared because the
@@ -54,20 +53,10 @@ class ContentListTile extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        item.title,
-                        style: Theme.of(context).textTheme.titleLarge,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                    if (item.isPremium) ...[
-                      const SizedBox(width: 8),
-                      const TierBadge(label: 'PREMIUM', color: AppColors.gold),
-                    ],
-                  ],
+                Text(
+                  item.title,
+                  style: Theme.of(context).textTheme.titleLarge,
+                  overflow: TextOverflow.ellipsis,
                 ),
                 const SizedBox(height: 4),
                 Text(

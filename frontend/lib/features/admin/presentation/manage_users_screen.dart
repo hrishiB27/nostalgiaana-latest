@@ -4,7 +4,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/config/theme_config.dart';
 import '../../../core/layout/adaptive_content_wrapper.dart';
 import '../../../core/layout/adaptive_list_grid.dart';
-import '../../../core/widgets/tier_badge.dart';
 import '../application/admin_users_notifier.dart';
 import '../data/models/admin_user_response_model.dart';
 import 'widgets/admin_error_view.dart';
@@ -186,21 +185,10 @@ class _UserRow extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          user.displayName,
-                          style: Theme.of(context).textTheme.titleLarge,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      TierBadge(
-                        label: isPremium ? 'PREMIUM' : 'STANDARD',
-                        color: tierColor,
-                      ),
-                    ],
+                  Text(
+                    user.displayName,
+                    style: Theme.of(context).textTheme.titleLarge,
+                    overflow: TextOverflow.ellipsis,
                   ),
                   const SizedBox(height: 4),
                   Text(

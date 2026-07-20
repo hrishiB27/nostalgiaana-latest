@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -29,8 +31,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _passwordController = TextEditingController();
   bool _obscurePassword = true;
 
+  Timer? _slowServerTimer;
+  bool _showSlowServerHint = false;
+
   @override
   void dispose() {
+    _slowServerTimer?.cancel();
     _identifierController.dispose();
     _passwordController.dispose();
     super.dispose();
@@ -38,12 +44,30 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   void _submitCredentials() {
     if (!(_formKey.currentState?.validate() ?? false)) return;
+    _startSlowServerTimer();
     ref
         .read(authNotifierProvider.notifier)
         .login(
           identifier: _identifierController.text.trim(),
           password: _passwordController.text,
         );
+  }
+
+  // The production backend can take up to ~90s to wake from Render's
+  // free-tier idle spin-down (see dio_client.dart's matching timeout) —
+  // this hint only appears once a login is taking noticeably longer than
+  // a warm request would, so it doesn't flash on every normal login.
+  void _startSlowServerTimer() {
+    _slowServerTimer?.cancel();
+    setState(() => _showSlowServerHint = false);
+    _slowServerTimer = Timer(const Duration(seconds: 4), () {
+      if (mounted) setState(() => _showSlowServerHint = true);
+    });
+  }
+
+  void _stopSlowServerTimer() {
+    _slowServerTimer?.cancel();
+    if (_showSlowServerHint) setState(() => _showSlowServerHint = false);
   }
 
   void _showPendingApprovalDialog() {
@@ -69,6 +93,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     ref.listen<AuthState>(authNotifierProvider, (previous, next) {
+      if (next.status != AuthStatus.loading) {
+        _stopSlowServerTimer();
+      }
       if (next.status == AuthStatus.authenticated && next.user != null) {
         routeToDashboard(context, next.user!);
       }
@@ -163,6 +190,18 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       isLoading: isLoading,
                       onPressed: _submitCredentials,
                     ),
+                    if (isLoading && _showSlowServerHint) ...[
+                      const SizedBox(height: 10),
+                      Text(
+                        'Waking up the server — this can take up to a '
+                        'minute after a period of inactivity.',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: AppColors.charcoal.withValues(alpha: 0.6),
+                          fontSize: 12,
+                        ),
+                      ),
+                    ],
                   ],
                 ),
               ),

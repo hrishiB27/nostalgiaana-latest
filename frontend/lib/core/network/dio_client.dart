@@ -13,8 +13,14 @@ final dioProvider = Provider<Dio>((ref) {
   final dio = Dio(
     BaseOptions(
       baseUrl: AppConfig.apiBaseUrl,
-      connectTimeout: const Duration(seconds: 15),
-      receiveTimeout: const Duration(seconds: 15),
+      // The production backend is a Render free-tier service that spins
+      // down when idle — the first request after any idle period can take
+      // 30-90s to wake it (see root CLAUDE.md's deployment-architecture
+      // notes). A short timeout would fail that request before the server
+      // ever finishes waking up, so both timeouts are set to the
+      // documented worst case rather than a typical warm-request latency.
+      connectTimeout: const Duration(seconds: 90),
+      receiveTimeout: const Duration(seconds: 90),
       headers: const {'Content-Type': 'application/json'},
     ),
   );

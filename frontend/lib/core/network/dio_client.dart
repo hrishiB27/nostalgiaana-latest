@@ -47,6 +47,11 @@ final dioProvider = Provider<Dio>((ref) {
       onError: (error, handler) async {
         final alreadyRetried = error.requestOptions.extra['retriedAfter401'] == true;
         if (error.response?.statusCode == 401 && !alreadyRetried) {
+          // A brief pause before re-reading the token widens the window
+          // for the secure-storage write to become visible — an
+          // immediate re-read can still lose the same race on a slower
+          // platform.
+          await Future.delayed(const Duration(milliseconds: 300));
           final token = await secureStorage.getAccessToken();
           if (token != null) {
             try {

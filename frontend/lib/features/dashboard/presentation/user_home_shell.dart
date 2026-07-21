@@ -108,8 +108,9 @@ class _UserHomeScreenShellState extends ConsumerState<UserHomeScreenShell> {
   Widget _buildShelf(
     String title,
     AsyncValue<List<ContentResponseModel>> asyncItems,
-    AuthStatus authStatus,
-  ) {
+    AuthStatus authStatus, {
+    required VoidCallback onRetry,
+  }) {
     return Padding(
       padding: const EdgeInsets.only(top: 24),
       child: Column(
@@ -154,10 +155,20 @@ class _UserHomeScreenShellState extends ConsumerState<UserHomeScreenShell> {
                   : Center(
                       child: Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 20),
-                        child: Text(
-                          messageFor(error),
-                          textAlign: TextAlign.center,
-                          style: const TextStyle(color: AppColors.gold),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              messageFor(error),
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(color: AppColors.gold),
+                            ),
+                            const SizedBox(height: 8),
+                            TextButton(
+                              onPressed: onRetry,
+                              child: const Text('Retry'),
+                            ),
+                          ],
                         ),
                       ),
                     ),
@@ -194,8 +205,18 @@ class _UserHomeScreenShellState extends ConsumerState<UserHomeScreenShell> {
             children: [
               const SizedBox(height: 12),
               _buildCategoryChips(),
-              _buildShelf('Shows', showsAsync, authStatus),
-              _buildShelf('Audios', audiosAsync, authStatus),
+              _buildShelf(
+                'Shows',
+                showsAsync,
+                authStatus,
+                onRetry: () => ref.invalidate(listenerShowsProvider(_selectedCategoryId)),
+              ),
+              _buildShelf(
+                'Audios',
+                audiosAsync,
+                authStatus,
+                onRetry: () => ref.invalidate(listenerAudiosProvider(_selectedCategoryId)),
+              ),
               const SizedBox(height: 24),
             ],
           ),

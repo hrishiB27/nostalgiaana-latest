@@ -6,7 +6,9 @@ import '../../../core/storage/secure_storage_service.dart';
 import '../../admin/application/admin_audios_notifier.dart';
 import '../../admin/application/admin_shows_notifier.dart';
 import '../../admin/application/admin_users_notifier.dart';
+import '../../category/application/category_providers.dart';
 import '../../content/application/audio_player_notifier.dart';
+import '../../content/application/listener_content_providers.dart';
 import '../../content/application/video_player_notifier.dart';
 import '../../user/data/user_api.dart';
 import '../data/auth_api.dart';
@@ -31,6 +33,7 @@ class AuthNotifier extends Notifier<AuthState> {
             accessToken: response.accessToken,
             refreshToken: response.refreshToken,
           );
+      _invalidateContentProviders();
       state = AuthState(
         status: AuthStatus.authenticated,
         user: AuthenticatedUser.fromAuthResponse(response),
@@ -51,6 +54,7 @@ class AuthNotifier extends Notifier<AuthState> {
             accessToken: response.accessToken,
             refreshToken: response.refreshToken,
           );
+      _invalidateContentProviders();
       state = AuthState(
         status: AuthStatus.authenticated,
         user: AuthenticatedUser.fromAuthResponse(response),
@@ -87,7 +91,20 @@ class AuthNotifier extends Notifier<AuthState> {
     ref.invalidate(adminUsersProvider);
     ref.invalidate(audioPlayerProvider);
     ref.invalidate(videoPlayerProvider);
+    _invalidateContentProviders();
     state = const AuthState(status: AuthStatus.unauthenticated);
+  }
+
+  /// Invalidates every content-fetch provider that isn't tied to a specific
+  /// screen's lifecycle (plain FutureProvider(.family), no autoDispose) —
+  /// without this, a stuck error from a transient post-login race (or any
+  /// other cause) would persist indefinitely, even across a logout/login
+  /// cycle in the same running app, since nothing else ever invalidates
+  /// these.
+  void _invalidateContentProviders() {
+    ref.invalidate(listenerShowsProvider);
+    ref.invalidate(listenerAudiosProvider);
+    ref.invalidate(categoriesProvider);
   }
 
   /// Re-syncs `role`/`membershipStatus` from `GET /api/user/me` without a

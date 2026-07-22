@@ -5,7 +5,6 @@ import '../../../core/config/theme_config.dart';
 import '../../../core/layout/adaptive_content_wrapper.dart';
 import '../../../core/network/api_error.dart';
 import '../../../core/widgets/floating_play_button.dart';
-import '../../../core/widgets/nostalgiaana_brand_text.dart';
 import '../../../sampleui/screens/auth_landing_screen.dart';
 import '../../auth/application/auth_notifier.dart';
 import '../../auth/application/auth_state.dart';
@@ -26,7 +25,8 @@ class UserHomeScreenShell extends ConsumerStatefulWidget {
   const UserHomeScreenShell({super.key});
 
   @override
-  ConsumerState<UserHomeScreenShell> createState() => _UserHomeScreenShellState();
+  ConsumerState<UserHomeScreenShell> createState() =>
+      _UserHomeScreenShellState();
 }
 
 class _UserHomeScreenShellState extends ConsumerState<UserHomeScreenShell> {
@@ -85,8 +85,12 @@ class _UserHomeScreenShellState extends ConsumerState<UserHomeScreenShell> {
               const SizedBox(width: 12),
               _CategoryCard(
                 label: category.name,
-                icon: contentCategoryFromName(category.name)?.icon ?? Icons.local_offer_rounded,
-                color: contentCategoryFromName(category.name)?.color ?? AppColors.charcoal,
+                icon:
+                    contentCategoryFromName(category.name)?.icon ??
+                    Icons.local_offer_rounded,
+                color:
+                    contentCategoryFromName(category.name)?.color ??
+                    AppColors.charcoal,
                 selected: _selectedCategoryId == category.id,
                 onTap: () => setState(() => _selectedCategoryId = category.id),
               ),
@@ -97,7 +101,10 @@ class _UserHomeScreenShellState extends ConsumerState<UserHomeScreenShell> {
           child: SizedBox(
             height: 18,
             width: 18,
-            child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.teal),
+            child: CircularProgressIndicator(
+              strokeWidth: 2,
+              color: AppColors.teal,
+            ),
           ),
         ),
         error: (error, stackTrace) => const SizedBox.shrink(),
@@ -128,7 +135,9 @@ class _UserHomeScreenShellState extends ConsumerState<UserHomeScreenShell> {
                   ? Center(
                       child: Text(
                         'Nothing here yet.',
-                        style: TextStyle(color: AppColors.charcoal.withValues(alpha: 0.5)),
+                        style: TextStyle(
+                          color: AppColors.charcoal.withValues(alpha: 0.5),
+                        ),
                       ),
                     )
                   : ListView.separated(
@@ -136,9 +145,12 @@ class _UserHomeScreenShellState extends ConsumerState<UserHomeScreenShell> {
                       padding: const EdgeInsets.symmetric(horizontal: 20),
                       itemCount: items.length,
                       separatorBuilder: (_, _) => const SizedBox(width: 14),
-                      itemBuilder: (context, index) => _ContentCard(item: items[index]),
+                      itemBuilder: (context, index) =>
+                          _ContentCard(item: items[index]),
                     ),
-              loading: () => const Center(child: CircularProgressIndicator(color: AppColors.teal)),
+              loading: () => const Center(
+                child: CircularProgressIndicator(color: AppColors.teal),
+              ),
               // A shelf load can transiently 401 in the same frame the
               // dashboard is pushed right after login, before the dio
               // interceptor's retry (see dio_client.dart) has resolved —
@@ -149,7 +161,10 @@ class _UserHomeScreenShellState extends ConsumerState<UserHomeScreenShell> {
                       child: SizedBox(
                         height: 18,
                         width: 18,
-                        child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.teal),
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: AppColors.teal,
+                        ),
                       ),
                     )
                   : Center(
@@ -187,8 +202,15 @@ class _UserHomeScreenShellState extends ConsumerState<UserHomeScreenShell> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const NostalgiaanaBrandText(
-          style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
+        title: Semantics(
+          label: 'Nostalgiaana',
+          child: SizedBox(
+            height: 34,
+            child: Image.asset(
+              'assets/images/nostalgiaana_logo_transparent.png',
+              fit: BoxFit.contain,
+            ),
+          ),
         ),
         actions: [
           IconButton(
@@ -209,13 +231,15 @@ class _UserHomeScreenShellState extends ConsumerState<UserHomeScreenShell> {
                 'Shows',
                 showsAsync,
                 authStatus,
-                onRetry: () => ref.invalidate(listenerShowsProvider(_selectedCategoryId)),
+                onRetry: () =>
+                    ref.invalidate(listenerShowsProvider(_selectedCategoryId)),
               ),
               _buildShelf(
                 'Audios',
                 audiosAsync,
                 authStatus,
-                onRetry: () => ref.invalidate(listenerAudiosProvider(_selectedCategoryId)),
+                onRetry: () =>
+                    ref.invalidate(listenerAudiosProvider(_selectedCategoryId)),
               ),
               const SizedBox(height: 24),
             ],
@@ -243,7 +267,9 @@ class _CategoryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final foreground = color == AppColors.gold ? AppColors.charcoal : Colors.white;
+    final foreground = color == AppColors.gold
+        ? AppColors.charcoal
+        : Colors.white;
     return GestureDetector(
       onTap: onTap,
       child: AnimatedContainer(
@@ -258,7 +284,9 @@ class _CategoryCard extends StatelessWidget {
             colors: [color, Color.lerp(color, Colors.white, 0.35)!],
           ),
           borderRadius: BorderRadius.circular(20),
-          border: selected ? Border.all(color: AppColors.charcoal, width: 2.5) : null,
+          border: selected
+              ? Border.all(color: AppColors.charcoal, width: 2.5)
+              : null,
           boxShadow: [
             BoxShadow(
               color: color.withValues(alpha: selected ? 0.45 : 0.2),
@@ -311,7 +339,9 @@ class _ContentCardState extends ConsumerState<_ContentCard> {
   @override
   Widget build(BuildContext context) {
     final item = widget.item;
-    final accent = item.contentType == ContentType.audio ? AppColors.teal : AppColors.crimson;
+    final accent = item.contentType == ContentType.audio
+        ? AppColors.teal
+        : AppColors.crimson;
 
     return GestureDetector(
       onTap: () => Navigator.of(context).push(
@@ -371,7 +401,10 @@ class _ContentCardState extends ConsumerState<_ContentCard> {
               item.title,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: const TextStyle(color: AppColors.charcoal, fontWeight: FontWeight.w600),
+              style: const TextStyle(
+                color: AppColors.charcoal,
+                fontWeight: FontWeight.w600,
+              ),
             ),
             // Always rendered (even with an empty string) rather than
             // conditional on item.speaker — an empty Text still reserves
@@ -382,7 +415,10 @@ class _ContentCardState extends ConsumerState<_ContentCard> {
               item.speaker ?? '',
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: TextStyle(color: AppColors.charcoal.withValues(alpha: 0.55), fontSize: 12),
+              style: TextStyle(
+                color: AppColors.charcoal.withValues(alpha: 0.55),
+                fontSize: 12,
+              ),
             ),
           ],
         ),

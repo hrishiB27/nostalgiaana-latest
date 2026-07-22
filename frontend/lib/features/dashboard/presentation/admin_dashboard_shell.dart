@@ -19,7 +19,8 @@ class AdminDashboardShell extends ConsumerStatefulWidget {
   const AdminDashboardShell({super.key});
 
   @override
-  ConsumerState<AdminDashboardShell> createState() => _AdminDashboardShellState();
+  ConsumerState<AdminDashboardShell> createState() =>
+      _AdminDashboardShellState();
 }
 
 class _AdminDashboardShellState extends ConsumerState<AdminDashboardShell> {
@@ -64,9 +65,9 @@ class _AdminDashboardShellState extends ConsumerState<AdminDashboardShell> {
   ];
 
   void _openPanel(BuildContext context, int index) {
-    Navigator.of(context).push(
-      MaterialPageRoute(builder: (_) => _pushDestinations[index]),
-    );
+    Navigator.of(
+      context,
+    ).push(MaterialPageRoute(builder: (_) => _pushDestinations[index]));
   }
 
   Future<bool> _confirmLogout() async {
@@ -131,16 +132,24 @@ class _AdminDashboardShellState extends ConsumerState<AdminDashboardShell> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(panel.title, style: Theme.of(context).textTheme.titleLarge),
+                      Text(
+                        panel.title,
+                        style: Theme.of(context).textTheme.titleLarge,
+                      ),
                       const SizedBox(height: 4),
                       Text(
                         panel.subtitle,
-                        style: TextStyle(color: AppColors.charcoal.withValues(alpha: 0.55)),
+                        style: TextStyle(
+                          color: AppColors.charcoal.withValues(alpha: 0.55),
+                        ),
                       ),
                     ],
                   ),
                 ),
-                Icon(Icons.chevron_right, color: AppColors.charcoal.withValues(alpha: 0.4)),
+                Icon(
+                  Icons.chevron_right,
+                  color: AppColors.charcoal.withValues(alpha: 0.4),
+                ),
               ],
             ),
           ),
@@ -171,7 +180,8 @@ class _AdminDashboardShellState extends ConsumerState<AdminDashboardShell> {
       children: [
         NavigationRail(
           selectedIndex: _selectedIndex,
-          onDestinationSelected: (index) => setState(() => _selectedIndex = index),
+          onDestinationSelected: (index) =>
+              setState(() => _selectedIndex = index),
           labelType: NavigationRailLabelType.all,
           destinations: const [
             NavigationRailDestination(
@@ -192,9 +202,22 @@ class _AdminDashboardShellState extends ConsumerState<AdminDashboardShell> {
         Expanded(
           child: Column(
             children: [
-              CommandHeaderBar(title: 'Admin Console', actions: _headerActions),
+              CommandHeaderBar(
+                leading: SizedBox(
+                  height: 34,
+                  child: Image.asset(
+                    'assets/images/nostalgiaana_logo_transparent.png',
+                    fit: BoxFit.contain,
+                  ),
+                ),
+                title: 'Admin Console',
+                actions: _headerActions,
+              ),
               Expanded(
-                child: IndexedStack(index: _selectedIndex, children: _railDestinations),
+                child: IndexedStack(
+                  index: _selectedIndex,
+                  children: _railDestinations,
+                ),
               ),
             ],
           ),
@@ -213,7 +236,17 @@ class _AdminDashboardShellState extends ConsumerState<AdminDashboardShell> {
               ? _buildDesktopBody()
               : Column(
                   children: [
-                    CommandHeaderBar(title: 'Admin Console', actions: _headerActions),
+                    CommandHeaderBar(
+                      leading: SizedBox(
+                        height: 34,
+                        child: Image.asset(
+                          'assets/images/nostalgiaana_logo_transparent.png',
+                          fit: BoxFit.contain,
+                        ),
+                      ),
+                      title: 'Admin Console',
+                      actions: _headerActions,
+                    ),
                     Expanded(child: _buildMobileBody(context)),
                   ],
                 ),

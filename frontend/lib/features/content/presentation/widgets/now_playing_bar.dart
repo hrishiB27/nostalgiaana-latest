@@ -23,9 +23,13 @@ class _NowPlayingBarState extends ConsumerState<NowPlayingBar> {
   double? _dragSeconds;
 
   String _format(Duration d) {
+    final hours = d.inHours;
     final minutes = d.inMinutes.remainder(60).toString().padLeft(2, '0');
     final seconds = d.inSeconds.remainder(60).toString().padLeft(2, '0');
-    return '$minutes:$seconds';
+    // Shows/long-form content regularly run past an hour — without this
+    // branch a track like 1:05:20 displayed as "05:20", indistinguishable
+    // from an actual 5m20s track.
+    return hours > 0 ? '$hours:$minutes:$seconds' : '$minutes:$seconds';
   }
 
   @override
@@ -38,9 +42,13 @@ class _NowPlayingBarState extends ConsumerState<NowPlayingBar> {
     final seekable = maxSeconds > 0;
     final positionSeconds =
         (_dragSeconds ?? state.position.inMilliseconds / 1000).clamp(0.0, seekable ? maxSeconds : 0.0);
-    final displayPosition = _dragSeconds != null
+    final rawPosition = _dragSeconds != null
         ? Duration(milliseconds: (_dragSeconds! * 1000).round())
         : state.position;
+    // just_audio's position stream can emit a value slightly past the
+    // reported duration near end-of-track — clamp the same way the slider
+    // above already does, so the text label can't show e.g. "05:32 / 05:30".
+    final displayPosition = seekable && rawPosition > duration ? duration : rawPosition;
 
     return Material(
       color: AppColors.panelCream,

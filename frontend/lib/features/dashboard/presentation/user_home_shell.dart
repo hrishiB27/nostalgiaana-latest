@@ -319,6 +319,7 @@ class _ContentCardState extends ConsumerState<_ContentCard> {
       ),
       child: SizedBox(
         width: 140,
+        height: 190,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -372,13 +373,17 @@ class _ContentCardState extends ConsumerState<_ContentCard> {
               overflow: TextOverflow.ellipsis,
               style: const TextStyle(color: AppColors.charcoal, fontWeight: FontWeight.w600),
             ),
-            if (item.speaker != null)
-              Text(
-                item.speaker!,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(color: AppColors.charcoal.withValues(alpha: 0.55), fontSize: 12),
-              ),
+            // Always rendered (even with an empty string) rather than
+            // conditional on item.speaker — an empty Text still reserves
+            // its line's height, so the image above keeps the same
+            // Expanded leftover space whether or not this item has a
+            // speaker, instead of visibly growing/shrinking per card.
+            Text(
+              item.speaker ?? '',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(color: AppColors.charcoal.withValues(alpha: 0.55), fontSize: 12),
+            ),
           ],
         ),
       ),

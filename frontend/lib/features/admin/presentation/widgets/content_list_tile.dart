@@ -56,6 +56,7 @@ class ContentListTile extends StatelessWidget {
                 Text(
                   item.title,
                   style: Theme.of(context).textTheme.titleLarge,
+                  maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
                 const SizedBox(height: 4),
@@ -64,6 +65,7 @@ class ContentListTile extends StatelessWidget {
                       ? 'Uncategorized'
                       : [item.categoryName, item.speaker].where((part) => part != null).join(' · '),
                   style: Theme.of(context).textTheme.bodySmall,
+                  maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
                 if (item.uploadedByName != null) ...[
@@ -71,6 +73,7 @@ class ContentListTile extends StatelessWidget {
                   Text(
                     'Uploaded by ${item.uploadedByName}',
                     style: TextStyle(color: AppColors.charcoal.withValues(alpha: 0.45), fontSize: 11),
+                    maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
                 ],

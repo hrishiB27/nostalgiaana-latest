@@ -9,6 +9,10 @@ import '../application/video_player_notifier.dart';
 /// Full-screen video playback — unlike audio (which plays via the
 /// persistent Now Playing bar across screens), video gets its own
 /// dedicated route and stops when the user navigates away.
+///
+/// Starts in portrait (video shown in a 16:9 box, like YouTube's embedded
+/// player) and only rotates to landscape/immersive when the user taps the
+/// fullscreen button — it never auto-rotates on its own.
 class VideoPlayerScreen extends ConsumerStatefulWidget {
   const VideoPlayerScreen({
     super.key,
@@ -30,6 +34,8 @@ class _VideoPlayerScreenState extends ConsumerState<VideoPlayerScreen> {
       defaultTargetPlatform == TargetPlatform.android ||
       defaultTargetPlatform == TargetPlatform.iOS;
 
+  bool _isFullscreen = false;
+
   @override
   void initState() {
     super.initState();
@@ -40,22 +46,45 @@ class _VideoPlayerScreenState extends ConsumerState<VideoPlayerScreen> {
           contentId: widget.contentId,
           title: widget.title,
         );
-    if (_isMobile) {
-      SystemChrome.setPreferredOrientations([
-        DeviceOrientation.landscapeLeft,
-        DeviceOrientation.landscapeRight,
-      ]);
-      SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+    // Explicit portrait lock (not just "leave orientation alone") so the
+    // screen can't be opened mid-landscape from a rotated device — matches
+    // "start in portrait mode by default" exactly.
+    if (_isMobile) _setPortraitOrientation();
+  }
+
+  void _setPortraitOrientation() {
+    SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+  }
+
+  void _setLandscapeOrientation() {
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.landscapeLeft,
+      DeviceOrientation.landscapeRight,
+    ]);
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+  }
+
+  void _toggleFullscreen() {
+    final enteringFullscreen = !_isFullscreen;
+    setState(() => _isFullscreen = enteringFullscreen);
+    if (!_isMobile) return;
+    if (enteringFullscreen) {
+      _setLandscapeOrientation();
+    } else {
+      // Restored immediately here, not left to dispose() alone — this is
+      // the fix for the bug where exiting fullscreen left the whole app
+      // stuck in a distorted landscape layout.
+      _setPortraitOrientation();
     }
   }
 
   @override
   void dispose() {
     ref.read(videoPlayerProvider.notifier).stop();
-    if (_isMobile) {
-      SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
-      SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
-    }
+    // Final safety net in case the screen is torn down some other way —
+    // harmless no-op if already restored by _toggleFullscreen/PopScope.
+    if (_isMobile) _setPortraitOrientation();
     super.dispose();
   }
 
@@ -68,6 +97,15 @@ class _VideoPlayerScreenState extends ConsumerState<VideoPlayerScreen> {
       canPop: false,
       onPopInvokedWithResult: (didPop, result) async {
         if (didPop) return;
+        // Back while fullscreen exits fullscreen first (same as YouTube) —
+        // guarantees the orientation restore always happens on the way
+        // out, rather than a stray back-press leaving the screen (and the
+        // whole app) stuck in landscape.
+        if (_isFullscreen) {
+          _toggleFullscreen();
+          return;
+        }
+        if (_isMobile) _setPortraitOrientation();
         // Await the stop completing before actually leaving the screen —
         // dispose() can't be async, so relying on it alone lets the async
         // native stop command race against the Video widget/texture being
@@ -77,47 +115,90 @@ class _VideoPlayerScreenState extends ConsumerState<VideoPlayerScreen> {
       },
       child: Scaffold(
         backgroundColor: Colors.black,
-        appBar: AppBar(
-          backgroundColor: Colors.black,
-          foregroundColor: Colors.white,
-          title: Text(widget.title, maxLines: 1, overflow: TextOverflow.ellipsis),
-        ),
-        body: Stack(
-          alignment: Alignment.center,
-          children: [
-            Center(child: Video(controller: controller)),
-            // Flanking rewind/forward-10s buttons, YouTube-style — sit at
-            // the screen's edges rather than the center so they don't
-            // compete with media_kit's own tap-to-toggle center controls.
-            Positioned.fill(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    _VideoSkipButton(
-                      icon: Icons.replay_10,
-                      onPressed: notifier.skipBackward,
-                    ),
-                    _VideoSkipButton(
-                      icon: Icons.forward_10,
-                      onPressed: notifier.skipForward,
-                    ),
-                  ],
+        appBar: _isFullscreen
+            ? null
+            : AppBar(
+                backgroundColor: Colors.black,
+                foregroundColor: Colors.white,
+                title: Text(widget.title, maxLines: 1, overflow: TextOverflow.ellipsis),
+              ),
+        body: _isFullscreen
+            ? _VideoStack(
+                controller: controller,
+                notifier: notifier,
+                isFullscreen: _isFullscreen,
+                onToggleFullscreen: _toggleFullscreen,
+              )
+            : Center(
+                child: AspectRatio(
+                  aspectRatio: 16 / 9,
+                  child: _VideoStack(
+                    controller: controller,
+                    notifier: notifier,
+                    isFullscreen: _isFullscreen,
+                    onToggleFullscreen: _toggleFullscreen,
+                  ),
                 ),
               ),
-            ),
-          ],
-        ),
       ),
     );
   }
 }
 
-/// Circular translucent skip button laid over the video — sized and styled
+/// The video surface plus its overlaid controls (skip buttons, fullscreen
+/// toggle) — shared between the portrait (boxed) and fullscreen (filled)
+/// layouts so the two states can't drift out of sync.
+class _VideoStack extends StatelessWidget {
+  const _VideoStack({
+    required this.controller,
+    required this.notifier,
+    required this.isFullscreen,
+    required this.onToggleFullscreen,
+  });
+
+  final VideoController controller;
+  final VideoPlayerNotifier notifier;
+  final bool isFullscreen;
+  final VoidCallback onToggleFullscreen;
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      alignment: Alignment.center,
+      children: [
+        Positioned.fill(child: Video(controller: controller)),
+        // Flanking rewind/forward-10s buttons, YouTube-style — sit at
+        // the screen's edges rather than the center so they don't
+        // compete with media_kit's own tap-to-toggle center controls.
+        Positioned.fill(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                _VideoIconButton(icon: Icons.replay_10, onPressed: notifier.skipBackward),
+                _VideoIconButton(icon: Icons.forward_10, onPressed: notifier.skipForward),
+              ],
+            ),
+          ),
+        ),
+        Positioned(
+          right: 12,
+          bottom: 12,
+          child: _VideoIconButton(
+            icon: isFullscreen ? Icons.fullscreen_exit : Icons.fullscreen,
+            onPressed: onToggleFullscreen,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// Circular translucent icon button laid over the video — sized and styled
 /// to read clearly against arbitrary video frames regardless of content.
-class _VideoSkipButton extends StatelessWidget {
-  const _VideoSkipButton({required this.icon, required this.onPressed});
+class _VideoIconButton extends StatelessWidget {
+  const _VideoIconButton({required this.icon, required this.onPressed});
 
   final IconData icon;
   final VoidCallback onPressed;

@@ -107,6 +107,32 @@ class AuthNotifier extends Notifier<AuthState> {
     ref.invalidate(categoriesProvider);
   }
 
+  /// Called once from [SplashScreen] on a cold start. A token surviving in
+  /// secure storage doesn't mean the session is still valid server-side
+  /// (expired, or the account was suspended/denied since last login) — so
+  /// this re-validates against `/api/user/me` rather than trusting the
+  /// stored token alone, the same check [refreshProfile] does post-payment,
+  /// just run earlier in the app lifecycle.
+  Future<void> restoreSession() async {
+    final storage = ref.read(secureStorageProvider);
+    final token = await storage.getAccessToken();
+    if (token == null) {
+      state = const AuthState(status: AuthStatus.unauthenticated);
+      return;
+    }
+    state = state.copyWith(status: AuthStatus.loading);
+    try {
+      final profile = await ref.read(userApiProvider).me();
+      state = AuthState(
+        status: AuthStatus.authenticated,
+        user: AuthenticatedUser.fromProfile(profile),
+      );
+    } catch (_) {
+      await storage.clear();
+      state = const AuthState(status: AuthStatus.unauthenticated);
+    }
+  }
+
   /// Re-syncs `role`/`membershipStatus` from `GET /api/user/me` without a
   /// fresh login — needed after a payment, since the Razorpay webhook that
   /// flips a user to PREMIUM runs server-to-server and the JWT/AuthResponse

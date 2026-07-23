@@ -21,6 +21,8 @@ import 'auth_state.dart';
 /// password check succeeds; nothing else needs to touch them directly
 /// because [dioProvider] reads them back on every request.
 class AuthNotifier extends Notifier<AuthState> {
+  bool _isLoggingOut = false;
+
   @override
   AuthState build() => const AuthState();
 
@@ -64,35 +66,64 @@ class AuthNotifier extends Notifier<AuthState> {
     }
   }
 
+  // Guards against a double-tap on the logout button re-entering this
+  // method concurrently — two overlapping calls both stopping/disposing the
+  // same audio/video players is exactly the race that used to trigger the
+  // bug below (media_kit's Player.stop() throws on an already-disposed
+  // player), so a second call while one is already in flight is a no-op.
   Future<void> logout() async {
-    // Stop any active playback immediately — audioPlayerProvider/
-    // videoPlayerProvider are app-wide singletons like dioProvider below,
-    // so nothing else tears them down on logout. Explicitly awaiting
-    // stop() (not just invalidating the provider) matters for the same
-    // reason VideoPlayerScreen's own dispose/pop handling does — invalidate
-    // alone races the async native stop, which is how a track has
-    // previously survived teardown in this app.
-    await ref.read(audioPlayerProvider.notifier).stop();
-    await ref.read(videoPlayerProvider.notifier).stop();
+    if (_isLoggingOut) return;
+    _isLoggingOut = true;
+    try {
+      // Stop any active playback immediately — audioPlayerProvider/
+      // videoPlayerProvider are app-wide singletons like dioProvider below,
+      // so nothing else tears them down on logout. Explicitly awaiting
+      // stop() (not just invalidating the provider) matters for the same
+      // reason VideoPlayerScreen's own dispose/pop handling does — invalidate
+      // alone races the async native stop, which is how a track has
+      // previously survived teardown in this app. Each stop is wrapped as
+      // best-effort: unlike just_audio, media_kit's Player.stop() throws an
+      // AssertionError if the underlying native player was already disposed
+      // (e.g. by a raced concurrent logout call) — previously that
+      // exception was uncaught and aborted this whole method before the
+      // tokens were ever cleared or `state` was set to unauthenticated,
+      // which is exactly the "clicking log out does nothing" bug.
+      await _bestEffort(() => ref.read(audioPlayerProvider.notifier).stop());
+      await _bestEffort(() => ref.read(videoPlayerProvider.notifier).stop());
+      await _bestEffort(() => ref.read(secureStorageProvider).clear());
 
-    await ref.read(secureStorageProvider).clear();
-    // dioProvider (and every *ApiProvider that watches it), the admin
-    // content providers, and the audio/video players are all app-wide
-    // singletons that outlive any one login session. Without invalidating
-    // them here, switching accounts in the same running app can leave a
-    // stale Dio client, cached admin shows/audios/users state (e.g. a
-    // previous 403), or a leftover player instance around from the prior
-    // account — invisible after a fresh app start (new providers every
-    // time) but reproducible when logging out and back in without
-    // restarting.
-    ref.invalidate(dioProvider);
-    ref.invalidate(adminShowsProvider);
-    ref.invalidate(adminAudiosProvider);
-    ref.invalidate(adminUsersProvider);
-    ref.invalidate(audioPlayerProvider);
-    ref.invalidate(videoPlayerProvider);
-    _invalidateContentProviders();
-    state = const AuthState(status: AuthStatus.unauthenticated);
+      // dioProvider (and every *ApiProvider that watches it), the admin
+      // content providers, and the audio/video players are all app-wide
+      // singletons that outlive any one login session. Without invalidating
+      // them here, switching accounts in the same running app can leave a
+      // stale Dio client, cached admin shows/audios/users state (e.g. a
+      // previous 403), or a leftover player instance around from the prior
+      // account — invisible after a fresh app start (new providers every
+      // time) but reproducible when logging out and back in without
+      // restarting.
+      ref.invalidate(dioProvider);
+      ref.invalidate(adminShowsProvider);
+      ref.invalidate(adminAudiosProvider);
+      ref.invalidate(adminUsersProvider);
+      ref.invalidate(audioPlayerProvider);
+      ref.invalidate(videoPlayerProvider);
+      _invalidateContentProviders();
+    } finally {
+      // Always settles here, even if something above threw unexpectedly —
+      // logging out must never leave the app stuck showing "authenticated"
+      // with no visible feedback.
+      state = const AuthState(status: AuthStatus.unauthenticated);
+      _isLoggingOut = false;
+    }
+  }
+
+  Future<void> _bestEffort(Future<void> Function() action) async {
+    try {
+      await action();
+    } catch (_) {
+      // See logout()'s comment above — cleanup failures must not block the
+      // rest of logout from completing.
+    }
   }
 
   /// Invalidates every content-fetch provider that isn't tied to a specific

@@ -1,6 +1,6 @@
-/// A single comment on a piece of content. No backend endpoint exists yet
-/// for this — shaped to match `GET/POST /api/content/{id}/comments`, which
-/// would mirror the existing `/api/content/{id}/stream` nesting once built.
+/// A single comment on a piece of content, from `GET/POST
+/// /api/content/{id}/comments` (mirrors the `/api/content/{id}/stream`
+/// nesting).
 class CommentModel {
   const CommentModel({
     required this.id,

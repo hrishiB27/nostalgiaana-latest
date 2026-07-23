@@ -16,22 +16,6 @@ services:
       retries: 10
     networks: [backend]
 
-  redis:
-    image: redis:7-alpine
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 5s
-      timeout: 5s
-      retries: 10
-    networks: [backend]
-    # Deliberately no maxmemory/eviction-policy tuning: this app's actual
-    # Redis usage (see audio/CLAUDE.md) is session-less OTP storage with
-    # explicit TTLs, not a cache. LRU-style eviction (e.g. allkeys-lru)
-    # could evict an unexpired OTP under memory pressure before its TTL —
-    # Redis's default (noeviction, TTL-based expiry only) is the correct
-    # behavior for this workload, not a cache-tuning oversight.
-
   minio:
     image: minio/minio:latest
     restart: unless-stopped
@@ -60,13 +44,9 @@ services:
       # to be overridden per-deploy, so set here rather than left to .env.
       DB_HOST: postgres
       DB_PORT: "5432"
-      REDIS_HOST: redis
-      REDIS_PORT: "6379"
       MINIO_ENDPOINT: http://minio:9000
     depends_on:
       postgres:
-        condition: service_healthy
-      redis:
         condition: service_healthy
       minio:
         condition: service_healthy

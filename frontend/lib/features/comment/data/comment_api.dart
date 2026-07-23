@@ -4,9 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/network/dio_client.dart';
 import 'models/comment_model.dart';
 
-/// Thin wrapper over `/api/content/{id}/comments` — not live on the backend
-/// yet, but shaped to match the existing `/content/{id}/stream` nesting so
-/// wiring it up later needs no client-side changes.
+/// Thin wrapper over `/api/content/{id}/comments`, shaped to match the
+/// existing `/content/{id}/stream` nesting.
 class CommentApi {
   const CommentApi(this._dio);
 

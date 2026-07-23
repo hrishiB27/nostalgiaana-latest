@@ -10,7 +10,9 @@ import com.nostalgiaana.audio.storage.StorageService;
 import com.nostalgiaana.audio.user.User;
 import com.nostalgiaana.audio.user.UserRole;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
@@ -19,6 +21,7 @@ import java.util.concurrent.TimeUnit;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class ContentService {
 
     private static final long STREAM_URL_EXPIRY_SECONDS = TimeUnit.HOURS.toSeconds(1);
@@ -27,6 +30,11 @@ public class ContentService {
     private final CategoryRepository categoryRepository;
     private final StorageService storageService;
 
+    // @Transactional: the initial save() below must not survive as an
+    // orphaned, unplayable row if a later step in this method throws —
+    // rolling back both save() calls together as one transaction, rather
+    // than committing the first regardless of what happens afterward.
+    @Transactional
     public ContentResponse upload(ContentType contentType, ContentUploadRequest request,
                                    MultipartFile mediaFile, MultipartFile coverFile, User uploadedBy) {
 
@@ -51,24 +59,52 @@ public class ContentService {
 
         content = contentRepository.save(content);
 
+        String mediaBucket = contentType == ContentType.SHOW
+                ? storageService.getVideoBucket()
+                : storageService.getAudioBucket();
         String mediaKey = content.getId() + extensionOf(mediaFile.getOriginalFilename());
-        if (contentType == ContentType.SHOW) {
-            storageService.uploadMultipartFile(storageService.getVideoBucket(), mediaKey, mediaFile);
-            content.setRawVideoPath(mediaKey);
-        } else {
-            storageService.uploadMultipartFile(storageService.getAudioBucket(), mediaKey, mediaFile);
-            content.setRawAudioPath(mediaKey);
-        }
+        String coverKey = null;
 
-        if (coverFile != null && !coverFile.isEmpty()) {
-            String coverKey = content.getId() + extensionOf(coverFile.getOriginalFilename());
-            storageService.uploadMultipartFile(storageService.getCoversBucket(), coverKey, coverFile);
-            content.setCoverPath(coverKey);
+        // MinIO uploads aren't part of the DB transaction above — if the
+        // cover upload fails after the media upload already succeeded, the
+        // media blob would otherwise become permanently storage-orphaned
+        // (never referenced by any persisted row, so delete()'s cleanup can
+        // never find it). Compensating cleanup below undoes whatever
+        // succeeded so far before rethrowing.
+        try {
+            storageService.uploadMultipartFile(mediaBucket, mediaKey, mediaFile);
+            if (contentType == ContentType.SHOW) {
+                content.setRawVideoPath(mediaKey);
+            } else {
+                content.setRawAudioPath(mediaKey);
+            }
+
+            if (coverFile != null && !coverFile.isEmpty()) {
+                coverKey = content.getId() + extensionOf(coverFile.getOriginalFilename());
+                storageService.uploadMultipartFile(storageService.getCoversBucket(), coverKey, coverFile);
+                content.setCoverPath(coverKey);
+            }
+        } catch (RuntimeException e) {
+            safeDelete(mediaBucket, mediaKey);
+            if (coverKey != null) {
+                safeDelete(storageService.getCoversBucket(), coverKey);
+            }
+            throw e;
         }
 
         content = contentRepository.save(content);
 
         return toResponse(content);
+    }
+
+    // Best-effort — a failure while cleaning up after an already-in-flight
+    // upload failure must not mask the original exception being propagated.
+    private void safeDelete(String bucket, String key) {
+        try {
+            storageService.deleteFile(bucket, key);
+        } catch (Exception e) {
+            log.warn("Failed to clean up orphaned upload '{}' in bucket '{}' after a failed content upload", key, bucket, e);
+        }
     }
 
     public StreamUrlResponse getStreamUrl(UUID contentId, User requester) {
@@ -188,12 +224,19 @@ public class ContentService {
         }
     }
 
+    // Whitelisted to a short alphanumeric extension — an unsanitized client
+    // filename (e.g. containing "../" or embedded path separators) could
+    // otherwise produce a confusing/colliding MinIO object key.
     private String extensionOf(String originalFilename) {
         if (originalFilename == null) {
             return "";
         }
         int dotIndex = originalFilename.lastIndexOf('.');
-        return dotIndex >= 0 ? originalFilename.substring(dotIndex) : "";
+        if (dotIndex < 0) {
+            return "";
+        }
+        String extension = originalFilename.substring(dotIndex);
+        return extension.matches("\\.[A-Za-z0-9]{1,5}") ? extension : "";
     }
 
     private ContentResponse toResponse(Content content) {

@@ -104,10 +104,16 @@ class _SplashScreenState extends ConsumerState<SplashScreen> with TickerProvider
     switch (status) {
       case AuthStatus.authenticated:
         final user = ref.read(authNotifierProvider).user;
+        _navigated = true;
+        _stopSlowServerTimer();
         if (user != null) {
-          _navigated = true;
-          _stopSlowServerTimer();
           routeToDashboard(context, user);
+        } else {
+          // Defensive fallback for an invariant that should never break in
+          // practice (authenticated status always carries a user) — if it
+          // ever did, this avoids hanging on the splash screen forever
+          // with no path forward.
+          _goToAuthLanding();
         }
       case AuthStatus.unauthenticated:
       case AuthStatus.error:

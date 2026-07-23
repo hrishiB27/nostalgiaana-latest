@@ -25,6 +25,9 @@ public class AdminBootstrapRunner implements ApplicationRunner {
     @Value("${admin.bootstrap.phone}")
     private String phone;
 
+    @Value("${admin.bootstrap.phone2}")
+    private String phone2;
+
     @Value("${admin.bootstrap.country}")
     private String country;
 
@@ -40,8 +43,13 @@ public class AdminBootstrapRunner implements ApplicationRunner {
             return;
         }
 
-        User user = userService.findByPhone(phone).orElseGet(() -> User.builder()
-                .phone(phone)
+        ensureAdmin(phone);
+        ensureAdmin(phone2);
+    }
+
+    private void ensureAdmin(String phoneNumber) {
+        User user = userService.findByPhone(phoneNumber).orElseGet(() -> User.builder()
+                .phone(phoneNumber)
                 .country(country)
                 .city(city)
                 .firstName("Admin")
@@ -54,6 +62,6 @@ public class AdminBootstrapRunner implements ApplicationRunner {
         user.setPasswordHash(passwordEncoder.encode(password));
 
         userService.save(user);
-        log.info("Admin bootstrap: ensured ADMIN account for {}", phone);
+        log.info("Admin bootstrap: ensured ADMIN account for {}", phoneNumber);
     }
 }

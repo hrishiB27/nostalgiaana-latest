@@ -105,6 +105,7 @@ admin:
   bootstrap:
     enabled: ${ADMIN_BOOTSTRAP_ENABLED:true}
     phone: "9987092587"
+    phone2: "9867713970"
     country: India
     city: Chennai
     password: ${ADMIN_BOOTSTRAP_PASSWORD:AdminPassword123}

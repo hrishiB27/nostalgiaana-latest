@@ -43,19 +43,23 @@ public class AdminBootstrapRunner implements ApplicationRunner {
             return;
         }
 
-        ensureAdmin(phone);
-        ensureAdmin(phone2);
+        ensureAdmin(phone, "Balaji", "R");
+        ensureAdmin(phone2, "Shankar", "I");
     }
 
-    private void ensureAdmin(String phoneNumber) {
+    // Names are forced on every restart (not just at creation) so a rename
+    // takes effect even for an account that already existed beforehand —
+    // consistent with role/isActive/approved/password already being reset
+    // unconditionally below.
+    private void ensureAdmin(String phoneNumber, String firstName, String lastName) {
         User user = userService.findByPhone(phoneNumber).orElseGet(() -> User.builder()
                 .phone(phoneNumber)
                 .country(country)
                 .city(city)
-                .firstName("Admin")
-                .lastName("User")
                 .build());
 
+        user.setFirstName(firstName);
+        user.setLastName(lastName);
         user.setRole(UserRole.ADMIN);
         user.setIsActive(true);
         user.setApproved(true);

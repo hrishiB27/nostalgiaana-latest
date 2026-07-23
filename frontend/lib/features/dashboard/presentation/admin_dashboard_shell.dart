@@ -165,6 +165,15 @@ class _AdminDashboardShellState extends ConsumerState<AdminDashboardShell> {
     ),
   ];
 
+  Widget _buildWelcomeBanner() {
+    final user = ref.watch(authNotifierProvider).user;
+    final name = user != null ? '${user.firstName} ${user.lastName}'.trim() : 'Admin';
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 16, 20, 4),
+      child: Text('Welcome, $name', style: Theme.of(context).textTheme.titleLarge),
+    );
+  }
+
   Widget _buildDesktopBody() {
     return Row(
       // Row defaults to CrossAxisAlignment.center, which left a gap above
@@ -213,6 +222,7 @@ class _AdminDashboardShellState extends ConsumerState<AdminDashboardShell> {
                 title: 'Admin Console',
                 actions: _headerActions,
               ),
+              _buildWelcomeBanner(),
               Expanded(
                 child: IndexedStack(
                   index: _selectedIndex,
@@ -247,6 +257,7 @@ class _AdminDashboardShellState extends ConsumerState<AdminDashboardShell> {
                       title: 'Admin Console',
                       actions: _headerActions,
                     ),
+                    _buildWelcomeBanner(),
                     Expanded(child: _buildMobileBody(context)),
                   ],
                 ),

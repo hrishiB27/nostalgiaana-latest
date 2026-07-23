@@ -1,5 +1,7 @@
 package com.nostalgiaana.audio.exception;
 
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
@@ -12,7 +14,22 @@ import java.util.HashMap;
 import java.util.Map;
 
 @RestControllerAdvice
+@Slf4j
 public class GlobalExceptionHandler {
+
+    // More specific than the RuntimeException handler below (DataAccessException
+    // is itself a RuntimeException), so Spring dispatches here first for any DB
+    // failure — otherwise a raw constraint-violation/SQL error message would
+    // leak to the client verbatim via handleRuntimeException's ex.getMessage().
+    @ExceptionHandler(DataAccessException.class)
+    public ResponseEntity<Map<String, Object>> handleDataAccessException(DataAccessException ex) {
+        log.error("Unhandled data access exception", ex);
+        Map<String, Object> error = new HashMap<>();
+        error.put("error", "An unexpected error occurred");
+        error.put("status", HttpStatus.INTERNAL_SERVER_ERROR.value());
+        error.put("timestamp", LocalDateTime.now().toString());
+        return ResponseEntity.internalServerError().body(error);
+    }
 
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<Map<String, Object>> handleAccessDenied(AccessDeniedException ex) {

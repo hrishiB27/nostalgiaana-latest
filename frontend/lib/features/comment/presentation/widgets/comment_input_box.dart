@@ -75,6 +75,8 @@ class _CommentInputBoxState extends ConsumerState<CommentInputBox> {
                         enabled: !state.isSubmitting,
                         minLines: 1,
                         maxLines: 4,
+                        // Matches CreateCommentRequest's @Size(max = 2000) on the backend.
+                        maxLength: 2000,
                         decoration: const InputDecoration(hintText: 'Add a comment…', isDense: true),
                       ),
                     ),

@@ -8,6 +8,14 @@ spring:
     password: ${DB_PASS:nostalgiaana123}
     driver-class-name: org.postgresql.Driver
     hikari:
+      # Explicit, small values rather than HikariCP's defaults (10/10) —
+      # this app is a single free-tier Render instance sitting behind
+      # Supabase's own free-tier PgBouncer pooler, which has a low shared
+      # connection cap; a rolling deploy briefly runs old+new instances
+      # together, so this must stay small enough that 2x this value still
+      # fits comfortably under the pooler's limit.
+      maximum-pool-size: 5
+      minimum-idle: 2
       data-source-properties:
         # Enforced here (not just as a DB_NAME query param) so it applies
         # regardless of what URL is typed into a hosting dashboard.

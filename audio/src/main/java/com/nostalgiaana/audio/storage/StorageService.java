@@ -85,12 +85,12 @@ public class StorageService {
 
     public void uploadMultipartFile(String bucketName, String objectName,
                                     MultipartFile file) {
-        try {
+        try (InputStream inputStream = file.getInputStream()) {
             minioClient.putObject(
                 PutObjectArgs.builder()
                     .bucket(bucketName)
                     .object(objectName)
-                    .stream(file.getInputStream(), file.getSize(), -1)
+                    .stream(inputStream, file.getSize(), -1)
                     .contentType(file.getContentType())
                     .build()
             );

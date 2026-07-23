@@ -87,11 +87,13 @@ public class AuthService {
 
         String identifier = request.getIdentifier();
 
+        // Same message for "no such phone" and "wrong password" — distinguishing them
+        // lets an attacker enumerate which phone numbers have registered accounts.
         User user = userService.findByIdentifier(identifier)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new RuntimeException("Invalid phone number or password"));
 
         if (!passwordEncoder.matches(request.getPassword(), user.getPasswordHash())) {
-            throw new RuntimeException("Invalid password");
+            throw new RuntimeException("Invalid phone number or password");
         }
 
         if (!user.getIsActive()) {
@@ -121,11 +123,17 @@ public class AuthService {
                 .build();
     }
 
+    // Whitelisted to a short alphanumeric extension — see the identical
+    // rationale on ContentService's copy of this method.
     private String extensionOf(String originalFilename) {
         if (originalFilename == null) {
             return "";
         }
         int dotIndex = originalFilename.lastIndexOf('.');
-        return dotIndex >= 0 ? originalFilename.substring(dotIndex) : "";
+        if (dotIndex < 0) {
+            return "";
+        }
+        String extension = originalFilename.substring(dotIndex);
+        return extension.matches("\\.[A-Za-z0-9]{1,5}") ? extension : "";
     }
 }

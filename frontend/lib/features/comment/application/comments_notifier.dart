@@ -20,8 +20,14 @@ class CommentsNotifier extends Notifier<CommentsState> {
   Future<void> load() async {
     state = state.copyWith(status: CommentsStatus.loading);
     try {
-      final items = await ref.read(commentApiProvider).fetchComments(contentId);
-      state = state.copyWith(status: CommentsStatus.loaded, items: items);
+      final fetched = await ref.read(commentApiProvider).fetchComments(contentId);
+      // Merge rather than blind-replace: if post() appended a comment locally
+      // while this fetch was in flight (e.g. the user posts before the
+      // initial load resolves), a stale GET response landing afterward must
+      // not silently wipe the user's own just-submitted comment back out.
+      final fetchedIds = fetched.map((c) => c.id).toSet();
+      final localOnly = state.items.where((c) => !fetchedIds.contains(c.id));
+      state = state.copyWith(status: CommentsStatus.loaded, items: [...fetched, ...localOnly]);
     } catch (error) {
       state = state.copyWith(status: CommentsStatus.error, errorMessage: messageFor(error));
     }

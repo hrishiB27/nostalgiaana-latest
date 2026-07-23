@@ -50,7 +50,6 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         }
 
         var userId = jwtService.extractUserId(token);
-        var role = jwtService.extractRole(token);
 
         User user = userService.findById(userId).orElse(null);
 
@@ -60,10 +59,13 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             } else if (!user.getApproved()) {
                 request.setAttribute("authRejectionReason", "waiting for approval for this mobile number");
             } else {
+                // Authority is built from the freshly-loaded user's current role, not the
+                // JWT's role claim — a role demoted in the DB (e.g. admin -> listener)
+                // must take effect immediately, not after the token's 24h expiry.
                 var authToken = new UsernamePasswordAuthenticationToken(
                         user,
                         null,
-                        List.of(new SimpleGrantedAuthority("ROLE_" + role))
+                        List.of(new SimpleGrantedAuthority("ROLE_" + user.getRole().name()))
                 );
                 authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(authToken);

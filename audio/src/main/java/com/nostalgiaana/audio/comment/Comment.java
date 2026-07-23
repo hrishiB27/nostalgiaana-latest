@@ -23,11 +23,13 @@ public class Comment {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "content_id", nullable = false)
     private Content content;
 
-    @ManyToOne
+    // Loaded via CommentRepository's explicit JOIN FETCH — toResponse() reads
+    // the author's name off this on every row, so it must not N+1.
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 

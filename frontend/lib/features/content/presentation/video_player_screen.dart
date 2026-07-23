@@ -81,7 +81,11 @@ class _VideoPlayerScreenState extends ConsumerState<VideoPlayerScreen> {
 
   @override
   void dispose() {
-    ref.read(videoPlayerProvider.notifier).stop();
+    // Best-effort: media_kit's Player.stop() throws if the native player was
+    // already disposed (e.g. raced by a concurrent logout tearing down
+    // videoPlayerProvider) — uncaught, that would otherwise skip the
+    // orientation restore below and surface as an unhandled async error.
+    ref.read(videoPlayerProvider.notifier).stop().catchError((_) {});
     // Final safety net in case the screen is torn down some other way —
     // harmless no-op if already restored by _toggleFullscreen/PopScope.
     if (_isMobile) _setPortraitOrientation();
@@ -110,7 +114,15 @@ class _VideoPlayerScreenState extends ConsumerState<VideoPlayerScreen> {
         // dispose() can't be async, so relying on it alone lets the async
         // native stop command race against the Video widget/texture being
         // torn down, which is how audio was surviving navigation away.
-        await ref.read(videoPlayerProvider.notifier).stop();
+        // Best-effort: canPop is hardcoded false above, so if stop() threw
+        // uncaught here (e.g. a disposed-player race), Navigator.pop() below
+        // would never run and the user would be stuck on this screen with
+        // back permanently non-functional.
+        try {
+          await ref.read(videoPlayerProvider.notifier).stop();
+        } catch (_) {
+          // Ignored — see comment above.
+        }
         if (context.mounted) Navigator.of(context).pop();
       },
       child: Scaffold(

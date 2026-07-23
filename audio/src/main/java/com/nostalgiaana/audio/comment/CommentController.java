@@ -23,8 +23,10 @@ public class CommentController {
     private final CommentService commentService;
 
     @GetMapping
-    public ResponseEntity<List<CommentResponse>> list(@PathVariable UUID contentId) {
-        return ResponseEntity.ok(commentService.listByContent(contentId));
+    public ResponseEntity<List<CommentResponse>> list(
+            @PathVariable UUID contentId,
+            @AuthenticationPrincipal User currentUser) {
+        return ResponseEntity.ok(commentService.listByContent(contentId, currentUser));
     }
 
     @PostMapping

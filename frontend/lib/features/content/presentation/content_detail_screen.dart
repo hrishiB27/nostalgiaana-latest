@@ -4,10 +4,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/config/theme_config.dart';
 import '../../../core/layout/adaptive_content_wrapper.dart';
 import '../../../core/widgets/floating_play_button.dart';
+import '../../comment/application/comments_notifier.dart';
+import '../../comment/presentation/widgets/comment_list_section.dart';
+import '../../comment/presentation/widgets/comments_bottom_bar.dart';
 import '../application/content_playback.dart';
 import '../data/models/content_response_model.dart';
 import '../data/models/content_type.dart';
-import 'widgets/now_playing_bar.dart';
 
 /// Detail view for either a Show or an Audio. Audio plays via the
 /// persistent Now Playing bar; Shows push a dedicated full-screen
@@ -26,6 +28,12 @@ class ContentDetailScreen extends ConsumerStatefulWidget {
 class _ContentDetailScreenState extends ConsumerState<ContentDetailScreen> {
   bool _isLoadingStream = false;
 
+  @override
+  void initState() {
+    super.initState();
+    Future.microtask(() => ref.read(commentsProvider(widget.content.id).notifier).load());
+  }
+
   Future<void> _playNow() async {
     setState(() => _isLoadingStream = true);
     await playContent(context: context, ref: ref, content: widget.content);
@@ -40,7 +48,7 @@ class _ContentDetailScreenState extends ConsumerState<ContentDetailScreen> {
 
     return Scaffold(
       appBar: AppBar(title: Text(content.title)),
-      bottomNavigationBar: const NowPlayingBar(),
+      bottomNavigationBar: CommentsBottomBar(contentId: content.id, accent: accent),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
         child: AdaptiveContentWrapper(
@@ -124,6 +132,10 @@ class _ContentDetailScreenState extends ConsumerState<ContentDetailScreen> {
                   content.description!,
                   style: Theme.of(context).textTheme.bodyMedium,
                 ),
+              const SizedBox(height: 24),
+              Divider(color: AppColors.charcoal.withValues(alpha: 0.08)),
+              const SizedBox(height: 12),
+              CommentListSection(contentId: content.id, accent: accent),
             ],
           ),
         ),

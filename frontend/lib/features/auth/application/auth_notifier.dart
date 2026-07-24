@@ -92,19 +92,14 @@ class AuthNotifier extends Notifier<AuthState> {
       await _bestEffort(() => ref.read(videoPlayerProvider.notifier).stop());
       await _bestEffort(() => ref.read(secureStorageProvider).clear());
 
-      // dioProvider (and every *ApiProvider that watches it), the admin
-      // content providers, and the audio/video players are all app-wide
-      // singletons that outlive any one login session. Without invalidating
-      // them here, switching accounts in the same running app can leave a
-      // stale Dio client, cached admin shows/audios/users state (e.g. a
-      // previous 403), or a leftover player instance around from the prior
-      // account — invisible after a fresh app start (new providers every
-      // time) but reproducible when logging out and back in without
-      // restarting.
+      // dioProvider, the content providers (see _invalidateContentProviders),
+      // and the audio/video players are all app-wide singletons that outlive
+      // any one login session. Without invalidating them here, switching
+      // accounts in the same running app can leave a stale Dio client or a
+      // leftover player instance around from the prior account — invisible
+      // after a fresh app start (new providers every time) but reproducible
+      // when logging out and back in without restarting.
       ref.invalidate(dioProvider);
-      ref.invalidate(adminShowsProvider);
-      ref.invalidate(adminAudiosProvider);
-      ref.invalidate(adminUsersProvider);
       ref.invalidate(audioPlayerProvider);
       ref.invalidate(videoPlayerProvider);
       _invalidateContentProviders();
@@ -127,15 +122,21 @@ class AuthNotifier extends Notifier<AuthState> {
   }
 
   /// Invalidates every content-fetch provider that isn't tied to a specific
-  /// screen's lifecycle (plain FutureProvider(.family), no autoDispose) —
-  /// without this, a stuck error from a transient post-login race (or any
-  /// other cause) would persist indefinitely, even across a logout/login
-  /// cycle in the same running app, since nothing else ever invalidates
-  /// these.
+  /// screen's lifecycle (plain NotifierProvider/FutureProvider(.family), no
+  /// autoDispose) — without this, a stuck error from a transient post-login
+  /// race (or any other cause) would persist indefinitely, even across a
+  /// logout/login cycle in the same running app, since nothing else ever
+  /// invalidates these. Called on login()/signup() too, not just logout() —
+  /// previously the admin providers were only cleared on logout, so a stale
+  /// cached error from an earlier attempt in the same session could resurface
+  /// immediately on an otherwise-successful fresh login.
   void _invalidateContentProviders() {
     ref.invalidate(listenerShowsProvider);
     ref.invalidate(listenerAudiosProvider);
     ref.invalidate(categoriesProvider);
+    ref.invalidate(adminShowsProvider);
+    ref.invalidate(adminAudiosProvider);
+    ref.invalidate(adminUsersProvider);
   }
 
   /// Called once from [SplashScreen] on a cold start. A token surviving in
